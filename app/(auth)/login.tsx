@@ -14,18 +14,21 @@ import { auth } from "../config/firebase";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const handleLogin = async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      router.replace("/(app)");
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
+  // const handleLogin = async () => {
+  //   try {
+  //     const userCredential = await signInWithEmailAndPassword(
+  //       auth,
+  //       email,
+  //       password
+  //     );
+  //     router.replace("/(app)");
+  //   } catch (error: any) {
+  //     Alert.alert("Error", error.message);
+  //   }
+  // };
+  const handleLogin = () => {
+    console.log("Login");
+    router.push("/home" as any);
   };
 
   return (
