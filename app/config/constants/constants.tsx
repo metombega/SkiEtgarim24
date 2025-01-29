@@ -8,5 +8,6 @@ export const Colors = {
     yellow_primary: 'rgb(255, 228, 121)',
     brown: 'rgb(139, 96, 65)',
     white: '#fff',
+    black: '#000',
     background: '#f0f0f0',
   };

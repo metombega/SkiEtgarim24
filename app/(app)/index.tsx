@@ -22,21 +22,25 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Ski-Etgarim</Text>
-            <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("surfer")}>
-              <Text style={styles.userButtonText}>גולש</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("volunteer")}>
-              <Text style={styles.userButtonText}>מתנדב</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("activity_manager")}>
-              <Text style={styles.userButtonText}>אחראי משמרת</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("admin")}>
-              <Text style={styles.userButtonText}>רכז</Text>
-            </TouchableOpacity>
+      <Text style={styles.title}>ברוכים הבאים לסקי אתגרים</Text>
+      <View style={styles.row}>
+        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.red_primary }]} onPress={handleUserButtonPress("surfer")}>
+          <Text style={[styles.userButtonText]}>גולש</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.green_primary }]} onPress={handleUserButtonPress("volunteer")}>
+          <Text style={[styles.userButtonText]}>מתנדב</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.row}>
+        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.light_blue }]} onPress={handleUserButtonPress("activity_manager")}>
+          <Text style={styles.userButtonText}>אחראי משמרת</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.dark_orange }]} onPress={handleUserButtonPress("admin")}>
+          <Text style={[styles.userButtonText, ]}>רכז</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
+        <Text style={styles.logoutButtonText}>התנתק</Text>
       </TouchableOpacity>
     </View>
   );
@@ -50,13 +54,20 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 20,
     color: Colors.light_orange,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
   logoutButton: {
-    backgroundColor: Colors.light_blue,
+    backgroundColor: Colors.black,
     padding: 10,
     borderRadius: 8,
     marginTop: 20,
@@ -67,17 +78,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   userButton: {
-    width: "100%",
-    height: 50,
-    backgroundColor: Colors.dark_blue,
-    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
     justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
+    padding: 10,
+    marginHorizontal: 5,
+    backgroundColor: Colors.dark_blue,
+    borderRadius: 5,
+    height: 100,
   },
   userButtonText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 18,
+    color: Colors.black,
+    fontWeight: 'bold',
   },
 });

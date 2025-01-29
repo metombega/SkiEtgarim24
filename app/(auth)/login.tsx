@@ -26,10 +26,6 @@ export default function Login() {
       Alert.alert("Error", error.message);
     }
   };
-  // const handleLogin = () => {
-  //   console.log("Login");
-  //   router.push("/index" as any);
-  // };
 
   return (
     <View style={styles.container}>
