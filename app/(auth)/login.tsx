@@ -14,6 +14,7 @@ import { auth } from "../config/firebase";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
   const handleLogin = async () => {
     try {
       const userCredential = await signInWithEmailAndPassword(
