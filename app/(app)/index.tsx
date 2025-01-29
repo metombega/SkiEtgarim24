@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "expo-router";
+import { Colors } from '@/app/config/constants/constants';
 
 export default function Home() {
   const router = useRouter();
@@ -22,7 +23,6 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to Ski-Etgarim</Text>
-          <View style={styles.container}>
             <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("surfer")}>
               <Text style={styles.userButtonText}>גולש</Text>
             </TouchableOpacity>
@@ -35,7 +35,6 @@ export default function Home() {
             <TouchableOpacity style={styles.userButton} onPress={handleUserButtonPress("admin")}>
               <Text style={styles.userButtonText}>רכז</Text>
             </TouchableOpacity>
-          </View>
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
@@ -54,30 +53,30 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
-    color: "#FF6B00",
+    color: Colors.light_orange,
   },
   logoutButton: {
-    backgroundColor: "#0066CC",
+    backgroundColor: Colors.light_blue,
     padding: 10,
     borderRadius: 8,
     marginTop: 20,
   },
   logoutButtonText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "bold",
   },
   userButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#0066CC", // Blue color
+    backgroundColor: Colors.dark_blue,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
   },
   userButtonText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "bold",
   },
