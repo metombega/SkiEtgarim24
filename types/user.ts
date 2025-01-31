@@ -18,6 +18,8 @@ export interface Volunteer extends User {
   floatingBeltSize: number;
   joinYear: number;
   senioretyYears: number;
+  abilities: VolunteerAbility[];
+  certifications: Certification[];
 }
 
 export interface VolunteerAbility {
