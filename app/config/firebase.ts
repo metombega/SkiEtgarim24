@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { initializeAuth, browserLocalPersistence } from 'firebase/auth';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBfGVa-ma220hj9aT2P-UlLspUqZp5YeSk",
   authDomain: "ski-etgarim-092924.firebaseapp.com",
   databaseURL: "https://ski-etgarim-092924-default-rtdb.firebaseio.com",
