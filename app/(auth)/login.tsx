@@ -10,6 +10,7 @@ import {
 import { Link, router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { Colors } from '@/app/config/constants/constants';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -31,11 +32,11 @@ export default function Login() {
   return (
     <View style={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Welcome Back!</Text>
+        <Text style={styles.title}>ברוך הבא!</Text>
 
         <TextInput
-          style={styles.input}
-          placeholder="Email"
+          style={[styles.input, styles.textBox]}
+          placeholder="אימייל"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -43,21 +44,21 @@ export default function Login() {
         />
 
         <TextInput
-          style={styles.input}
-          placeholder="Password"
+          style={[styles.input, styles.textBox]}
+          placeholder="סיסמה"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+          <Text style={styles.loginButtonText}>התחבר</Text>
         </TouchableOpacity>
 
         <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account? </Text>
+          <Text style={styles.registerText}>אין לך חשבון? </Text>
           <TouchableOpacity onPress={() => router.push("/register" as any)}>
-            <Text style={styles.registerLink}>Register here</Text>
+            <Text style={styles.registerLink}>הרשם</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -68,7 +69,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.white,
     padding: 20,
   },
   formContainer: {
@@ -81,41 +82,44 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 30,
-    color: "#FF6B00", // Orange color
+    color: Colors.dark_blue,
   },
   input: {
     width: "100%",
     height: 50,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: Colors.white,
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
   },
   loginButton: {
     width: "100%",
     height: 50,
-    backgroundColor: "#0066CC", // Blue color
+    backgroundColor: Colors.light_blue,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 10,
   },
   loginButtonText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 16,
     fontWeight: "bold",
   },
   registerContainer: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     marginTop: 20,
   },
   registerText: {
-    color: "#666",
+    color: Colors.brown,
   },
   registerLink: {
-    color: "#0066CC",
+    color: Colors.dark_orange,
     fontWeight: "bold",
+  },
+  textBox: {
+    textAlign: "right",
   },
 });
