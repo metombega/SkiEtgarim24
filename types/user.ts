@@ -7,13 +7,13 @@ export interface User {
   phoneNumber: string;
   email: string;
   fullName: string;
+  height: number;
   age: number;
   sex: Sex;
   emergencyContact: EmergencyContact;
 }
 
 export interface Volunteer extends User {
-  hight: number;
   sittingSizeMessure: number;
   floatingBeltSize: number;
   joinYear: number;
