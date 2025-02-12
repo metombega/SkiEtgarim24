@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -17,13 +18,20 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setfullName] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [emeregencyContactPhoneNumber, setemEregencyContactPhoneNumber] = useState("");
+  const [emeregencyContactName, setemEregencyContactName] = useState("");
+  const [age, setAge] = useState("");
+  const [height, setHeight] = useState("");
+  const [isSurfer, setIsSurfer] = useState("");
+  const [isTeamMember, setIsTeamMember] = useState("");
 
   const addUserToDatabase = async () => {
     const db = getDatabase();
     if (auth.currentUser) {
       const userRef = ref(db, 'users/' + fullName);
-      await set(userRef, { email });
+      await set(userRef, { email, fullName, phoneNumber, emeregencyContactPhoneNumber, emeregencyContactName, age, height, isSurfer, isTeamMember });
     } else {
       Alert.alert("Error", "User is not authenticated");
     }
@@ -49,7 +57,7 @@ export default function Register() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
         <Text style={styles.title}>צור משתמש חדש</Text>
         
@@ -58,7 +66,81 @@ export default function Register() {
             style={styles.input}
             placeholder="שם מלא"
             value={fullName}
-            onChangeText={setfullName}
+            onChangeText={setFullName}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="מספר טלפון"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="שם איש קשר לחירום"
+            value={emeregencyContactName}
+            onChangeText={setemEregencyContactName}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="מספר טלפון איש קשר לחירום"
+            value={emeregencyContactPhoneNumber}
+            onChangeText={setemEregencyContactPhoneNumber}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="גיל"
+            value={age}
+            onChangeText={setAge}
+            keyboardType="numeric"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="גובה"
+            value={height}
+            onChangeText={setHeight}
+            keyboardType="numeric"
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="הרשם כגולש"
+            value={isSurfer}
+            onChangeText={setIsSurfer}
+            autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="הרשם כצוותסקי"
+            value={isTeamMember}
+            onChangeText={setIsTeamMember}
             autoCapitalize="none"
           />
         </View>
@@ -105,13 +187,13 @@ export default function Register() {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: Colors.white,
     padding: 20,
   },
