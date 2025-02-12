@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  CheckBox,
 } from "react-native";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -24,8 +25,8 @@ export default function Register() {
   const [emeregencyContactName, setemEregencyContactName] = useState("");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
-  const [isSurfer, setIsSurfer] = useState("");
-  const [isTeamMember, setIsTeamMember] = useState("");
+  const [isSurfer, setIsSurfer] = useState(false);
+  const [isTeamMember, setIsTeamMember] = useState(false);
 
   const addUserToDatabase = async () => {
     const db = getDatabase();
@@ -61,6 +62,26 @@ export default function Register() {
       <View style={styles.formContainer}>
         <Text style={styles.title}>צור משתמש חדש</Text>
         
+        <View style={styles.inputContainer}>
+          <View style={styles.checkboxContainer}>
+            <CheckBox
+              value={isSurfer}
+              onValueChange={setIsSurfer}
+            />
+            <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
+          </View>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.checkboxContainer}>
+            <CheckBox
+              value={isTeamMember}
+              onValueChange={setIsTeamMember}
+            />
+            <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
+          </View>
+        </View>
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -117,30 +138,10 @@ export default function Register() {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="גובה"
+            placeholder="גובה בסנטימטרים"
             value={height}
             onChangeText={setHeight}
             keyboardType="numeric"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="הרשם כגולש"
-            value={isSurfer}
-            onChangeText={setIsSurfer}
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="הרשם כצוותסקי"
-            value={isTeamMember}
-            onChangeText={setIsTeamMember}
             autoCapitalize="none"
           />
         </View>
@@ -223,6 +224,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row-reverse",
     width: "100%",
+  },
+  checkboxContainer: {
+    flexDirection: "row-reverse",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    marginRight: 8,
+    color: Colors.black,
   },
   registerButton: {
     width: "100%",
