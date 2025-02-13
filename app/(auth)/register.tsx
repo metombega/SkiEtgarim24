@@ -55,6 +55,10 @@ export default function Register() {
   };
 
   const validateFields = () => {
+    if (!isSurfer && !isTeamMember) {
+      setErrorMessage("נא לבחור לפחות אחת מהאפשרויות: גולש או צוותסקי");
+      return false;
+    }
     if (!fullName.trim()) {
       setErrorMessage("נא להזין שם מלא");
       return false;
@@ -93,6 +97,10 @@ export default function Register() {
     }
     if (!/^\d+$/.test(height)) {
       setErrorMessage("גובה חייב להיות מספר");
+      return false;
+    }
+    if (!sex.trim()) {
+      setErrorMessage("נא לבחור מין");
       return false;
     }
     if (!email.trim()) {
