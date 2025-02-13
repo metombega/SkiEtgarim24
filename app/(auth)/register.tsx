@@ -5,15 +5,15 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
+  //@ts-ignore
   CheckBox,
 } from "react-native";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { Colors } from '../config/constants/constants';
-import { getDatabase, ref, set } from 'firebase/database';
+import { Colors } from "../config/constants/constants";
+import { getDatabase, ref, set } from "firebase/database";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -21,63 +21,133 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [emeregencyContactPhoneNumber, setemEregencyContactPhoneNumber] = useState("");
+  const [emeregencyContactPhoneNumber, setemEregencyContactPhoneNumber] =
+    useState("");
   const [emeregencyContactName, setemEregencyContactName] = useState("");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
   const [isSurfer, setIsSurfer] = useState(false);
   const [isTeamMember, setIsTeamMember] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const addUserToDatabase = async () => {
     const db = getDatabase();
     if (auth.currentUser) {
-      const userRef = ref(db, 'users/' + fullName);
-      await set(userRef, { email, fullName, phoneNumber, emeregencyContactPhoneNumber, emeregencyContactName, age, height, isSurfer, isTeamMember });
+      const userRef = ref(db, "users/" + fullName);
+      await set(userRef, {
+        email,
+        fullName,
+        phoneNumber,
+        emeregencyContactPhoneNumber,
+        emeregencyContactName,
+        age,
+        height,
+        isSurfer,
+        isTeamMember,
+      });
     } else {
-      Alert.alert("Error", "User is not authenticated");
+      setErrorMessage("User is not authenticated");
     }
-  }
+  };
+
+  const validateFields = () => {
+    if (!fullName.trim()) {
+      setErrorMessage("נא להזין שם מלא");
+      return false;
+    }
+    if (!phoneNumber.trim()) {
+      setErrorMessage("נא להזין מספר טלפון");
+      return false;
+    }
+    if (!/^\d+$/.test(phoneNumber)) {
+      setErrorMessage("מספר טלפון לא תקין");
+      return false;
+    }
+    if (!emeregencyContactName.trim()) {
+      setErrorMessage("נא להזין שם איש קשר לחירום");
+      return false;
+    }
+    if (!emeregencyContactPhoneNumber.trim()) {
+      setErrorMessage("נא להזין מספר טלפון לאיש קשר לחירום");
+      return false;
+    }
+    if (!/^\d+$/.test(emeregencyContactPhoneNumber)) {
+      setErrorMessage("מספר טלפון איש קשר לחירום לא תקין");
+      return false;
+    }
+    if (!age.trim()) {
+      setErrorMessage("נא להזין גיל");
+      return false;
+    }
+    if (!/^\d+$/.test(age)) {
+      setErrorMessage("גיל חייב להיות מספר");
+      return false;
+    }
+    if (!height.trim()) {
+      setErrorMessage("נא להזין גובה");
+      return false;
+    }
+    if (!/^\d+$/.test(height)) {
+      setErrorMessage("גובה חייב להיות מספר");
+      return false;
+    }
+    if (!email.trim()) {
+      setErrorMessage("נא להזין אימייל");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setErrorMessage("כתובת אימייל לא תקינה");
+      return false;
+    }
+    if (!password) {
+      setErrorMessage("נא להזין סיסמה");
+      return false;
+    }
+    if (password.length < 6) {
+      setErrorMessage("הסיסמה חייבת להכיל לפחות 6 תווים");
+      return false;
+    }
+    if (!confirmPassword) {
+      setErrorMessage("נא להזין אימות סיסמה");
+      return false;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage("סיסמאות אינן תואמות");
+      return false;
+    }
+    setErrorMessage("");
+    return true;
+  };
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "סיסמאות אינן תואמות");
+    if (!validateFields()) {
       return;
     }
-
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      await createUserWithEmailAndPassword(auth, email, password);
+      await addUserToDatabase();
       router.replace("/(app)");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      setErrorMessage(error.message || "הרשמה נכשלה. אנא נסה שוב.");
     }
-    addUserToDatabase();
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
         <Text style={styles.title}>צור משתמש חדש</Text>
-        
+
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox
-              value={isSurfer}
-              onValueChange={setIsSurfer}
-            />
+            <CheckBox value={isSurfer} onValueChange={setIsSurfer} />
             <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox
-              value={isTeamMember}
-              onValueChange={setIsTeamMember}
-            />
+            <CheckBox value={isTeamMember} onValueChange={setIsTeamMember} />
             <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
           </View>
         </View>
@@ -177,7 +247,14 @@ export default function Register() {
           />
         </View>
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegister}
+        >
           <Text style={styles.registerButtonText}>הרשם</Text>
         </TouchableOpacity>
 
@@ -259,5 +336,10 @@ const styles = StyleSheet.create({
   loginLink: {
     color: Colors.dark_orange,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 15,
+    textAlign: "center",
   },
 });

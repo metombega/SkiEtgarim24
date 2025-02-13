@@ -5,16 +5,16 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { Colors } from '@/app/config/constants/constants';
+import { Colors } from "@/app/config/constants/constants";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); 
 
   const handleLogin = async () => {
     try {
@@ -25,7 +25,14 @@ export default function Login() {
       );
       router.replace("/(app)");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      console.error("4444444444444444444444:", error.code);
+      switch (error.code) {
+        case "auth/invalid-credential":
+          setErrorMessage("שם המשתמש או הסיסמה שגויים.");
+          break;
+        default:
+          setErrorMessage("התחברות נכשלה. אנא נסה שוב.");
+      }
     }
   };
 
@@ -50,6 +57,10 @@ export default function Login() {
           onChangeText={setPassword}
           secureTextEntry
         />
+
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>התחבר</Text>
@@ -121,5 +132,9 @@ const styles = StyleSheet.create({
   },
   textBox: {
     textAlign: "right",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 15,
   },
 });
