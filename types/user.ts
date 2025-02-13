@@ -1,5 +1,3 @@
-export type Sex = "M" | "F";  
-
 export interface User {
   id: string;
   username: string;
@@ -9,17 +7,26 @@ export interface User {
   fullName: string;
   height: number;
   age: number;
-  sex: Sex;
+  sex: string;
   emergencyContact: EmergencyContact;
 }
 
-export interface Volunteer extends User {
+export interface EmergencyContact {
+  name: string;
+  phoneNumber: string;
+}
+
+export interface ApprovedUser extends User {
   sittingSizeMessure: number;
-  floatingBeltSize: number;
+  sittingPosition: number;
+  floatingBeltSize: string;
   joinYear: number;
   senioretyYears: number;
+}
+
+export interface Volunteer extends ApprovedUser {
   abilities: VolunteerAbility[];
-  certifications: Certification[];
+  certifications: VolunteerCertification[];
 }
 
 export interface VolunteerAbility {
@@ -28,13 +35,24 @@ export interface VolunteerAbility {
   comments: string;
 }
 
-export interface Certification {
-  exists: boolean;
+export interface VolunteerCertification {
   type: string;
+  exists: boolean;
   comments: string;
 }
 
-export interface EmergencyContact {
-  name: string;
-  phoneNumber: string;
+export interface Surfer extends ApprovedUser {
+  ropeType: string;
+  surfingSpeed: number;
+  abilities: SurferAbility[];
+  specialEquipment: string;
+  shoulderHarness: boolean;
+  paddle: boolean;
+  floats: boolean;
+}
+
+export interface SurferAbility {
+  type: string;
+  exists: boolean;
+  comments: string;
 }
