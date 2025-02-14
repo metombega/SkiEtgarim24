@@ -8,6 +8,8 @@ import {
   ScrollView,
   //@ts-ignore
   CheckBox,
+  //@ts-ignore
+  Picker,
 } from "react-native";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -26,6 +28,7 @@ export default function Register() {
   const [emeregencyContactName, setemEregencyContactName] = useState("");
   const [age, setAge] = useState("");
   const [height, setHeight] = useState("");
+  const [sex, setSex] = useState("");
   const [isSurfer, setIsSurfer] = useState(false);
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -33,24 +36,46 @@ export default function Register() {
   const addUserToDatabase = async () => {
     const db = getDatabase();
     if (auth.currentUser) {
-      const userRef = ref(db, "users/" + fullName);
-      await set(userRef, {
-        email,
-        fullName,
-        phoneNumber,
-        emeregencyContactPhoneNumber,
-        emeregencyContactName,
-        age,
-        height,
-        isSurfer,
-        isTeamMember,
-      });
+      if (isSurfer) {
+      const surferRef = ref(db, "users/surfers/" + fullName);
+        await set(surferRef, {
+          email,
+          fullName,
+          phoneNumber,
+          emeregencyContactPhoneNumber,
+          emeregencyContactName,
+          age,
+          height,
+          sex,
+          isSurfer,
+          isTeamMember,
+        });
+      }
+      if (isTeamMember) {
+        const teamMemberRef = ref(db, "users/ski-team/" + fullName);
+        await set(teamMemberRef, {
+          email,
+          fullName,
+          phoneNumber,
+          emeregencyContactPhoneNumber,
+          emeregencyContactName,
+          age,
+          height,
+          sex,
+          isSurfer,
+          isTeamMember,
+        });
+      }
     } else {
       setErrorMessage("User is not authenticated");
     }
   };
 
   const validateFields = () => {
+    if (!isSurfer && !isTeamMember) {
+      setErrorMessage("נא לבחור לפחות אחת מהאפשרויות: גולש או צוותסקי");
+      return false;
+    }
     if (!fullName.trim()) {
       setErrorMessage("נא להזין שם מלא");
       return false;
@@ -89,6 +114,10 @@ export default function Register() {
     }
     if (!/^\d+$/.test(height)) {
       setErrorMessage("גובה חייב להיות מספר");
+      return false;
+    }
+    if (!sex.trim()) {
+      setErrorMessage("נא לבחור מין");
       return false;
     }
     if (!email.trim()) {
@@ -217,6 +246,18 @@ export default function Register() {
         </View>
 
         <View style={styles.inputContainer}>
+          <Picker
+            selectedValue={sex}
+            style={styles.picker}
+            onValueChange={(itemValue: string) => setSex(itemValue)}
+          >
+            <Picker.Item label="מין" value="" />
+            <Picker.Item label="זכר" value="זכר" />
+            <Picker.Item label="נקבה" value="נקבה" />
+          </Picker>
+        </View>
+
+        <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             placeholder="אימייל"
@@ -341,5 +382,13 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 15,
     textAlign: "center",
+  },
+  picker: {
+    height: 50,
+    width: "100%",
+    marginBottom: 15,
+    backgroundColor: Colors.background,
+    textAlign: "right",
+    fontSize: 14,
   },
 });
