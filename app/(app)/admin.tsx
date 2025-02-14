@@ -30,7 +30,7 @@ export default function Admin() {
             title="גולשים"
             description="ניהול גולשים"
             imageSource={require('@/assets/images/react-logo.png')}
-            onPress={() => router.push('/admin')}
+            onPress={() => router.push('/surfers_management')}
           />
           <CustomButton
             title="ציוד"
@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         padding: 20,
+        color: Colors.dark_blue,
     },
 });
 
