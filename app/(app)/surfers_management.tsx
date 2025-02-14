@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { get, getDatabase, ref, remove } from "firebase/database";
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
+import { SurferDetailsNavigationProp } from './navigationTypes';
 
 const SurfersManagement = () => {
+  const navigation = useNavigation<SurferDetailsNavigationProp>();
   const [surfers, setSurfers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [filteredSurfers, setFilteredSurfers] = useState<any[]>([]);
@@ -34,7 +37,7 @@ const SurfersManagement = () => {
   }, [search, surfers]);
 
   const handleEdit = (id: string) => {
-    // Handle edit action
+    navigation.navigate('surfer_details', { id });
   };
 
   const handleDelete = (id: string) => {
@@ -65,7 +68,6 @@ const SurfersManagement = () => {
       );
     }
   };
-  
 
   return (
     <View style={styles.container}>
