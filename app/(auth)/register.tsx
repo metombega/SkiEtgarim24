@@ -36,19 +36,36 @@ export default function Register() {
   const addUserToDatabase = async () => {
     const db = getDatabase();
     if (auth.currentUser) {
-      const userRef = ref(db, "users/" + fullName);
-      await set(userRef, {
-        email,
-        fullName,
-        phoneNumber,
-        emeregencyContactPhoneNumber,
-        emeregencyContactName,
-        age,
-        height,
-        sex,
-        isSurfer,
-        isTeamMember,
-      });
+      if (isSurfer) {
+      const surferRef = ref(db, "users/surfers/" + fullName);
+        await set(surferRef, {
+          email,
+          fullName,
+          phoneNumber,
+          emeregencyContactPhoneNumber,
+          emeregencyContactName,
+          age,
+          height,
+          sex,
+          isSurfer,
+          isTeamMember,
+        });
+      }
+      if (isTeamMember) {
+        const teamMemberRef = ref(db, "users/ski-team/" + fullName);
+        await set(teamMemberRef, {
+          email,
+          fullName,
+          phoneNumber,
+          emeregencyContactPhoneNumber,
+          emeregencyContactName,
+          age,
+          height,
+          sex,
+          isSurfer,
+          isTeamMember,
+        });
+      }
     } else {
       setErrorMessage("User is not authenticated");
     }
