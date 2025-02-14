@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { get, getDatabase, ref } from "firebase/database";
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { get, getDatabase, ref, remove } from "firebase/database";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SurfersManagement = () => {
@@ -38,8 +38,34 @@ const SurfersManagement = () => {
   };
 
   const handleDelete = (id: string) => {
-    // Handle delete action
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm("Are you sure you want to delete this surfer?");
+      if (!confirmed) return;
+      
+      const db = getDatabase();
+      const surferRef = ref(db, `users/surfers/${id}`);
+      remove(surferRef);
+      setSurfers(surfers.filter(surfer => surfer.id !== id));
+    } else {
+      Alert.alert(
+        "Confirm Deletion",
+        "Are you sure you want to delete this surfer?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Yes",
+            onPress: async () => {
+              const db = getDatabase();
+              const surferRef = ref(db, `users/surfers/${id}`);
+              await remove(surferRef);
+              setSurfers(surfers.filter(surfer => surfer.id !== id));
+            }
+          }
+        ]
+      );
+    }
   };
+  
 
   return (
     <View style={styles.container}>
