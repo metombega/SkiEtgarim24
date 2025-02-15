@@ -53,3 +53,6 @@ export interface SurferAbility {
   exists: boolean;
   comments: string;
 }
+
+// create a const list of fake abilities
+export const surferAbilitiesTypes = ['standing', 'kneeling', 'sitting', 'lying'];
