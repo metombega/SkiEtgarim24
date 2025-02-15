@@ -8,13 +8,10 @@ export interface User {
   height: number;
   age: number;
   sex: string;
-  emergencyContact: EmergencyContact;
+  emeregencyContactName: string;
+  emeregencyContactPhoneNumber: string;
 }
 
-export interface EmergencyContact {
-  name: string;
-  phoneNumber: string;
-}
 
 export interface ApprovedUser extends User {
   sittingSizeMessure: number;
