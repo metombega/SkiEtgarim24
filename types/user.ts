@@ -55,4 +55,4 @@ export interface SurferAbility {
 }
 
 // create a const list of fake abilities
-export const surferAbilitiesTypes = ['standing', 'kneeling', 'sitting', 'lying'];
+export const surferAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];

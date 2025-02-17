@@ -9,21 +9,31 @@ const SurferDetails = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [surfer, setSurfer] = useState<Surfer | null>(null);
   const [editedSurfer, setEditedSurfer] = useState<Surfer | null>(null);
+  const [abilities, setAbilities] = useState<any>(null);
+  const [editedAbilities, setEditedAbilities] = useState<any>(null);
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     
-    const fetchSurfer = async () => {
+    const fetchData = async () => {
       const db = getDatabase();
+      // Fetch surfer details
       const surferRef = ref(db, `users/surfers/${id}`);
       const snapshot = await get(surferRef);
       const data = snapshot.val();
       setSurfer(data);
       setEditedSurfer(data);
+
+      // Fetch abilities from the sub-folder
+      const abilitiesRef = ref(db, `users/surfers/${id}/abilities`);
+      const abilitiesSnap = await get(abilitiesRef);
+      const abilitiesData = abilitiesSnap.val();
+      setAbilities(abilitiesData);
+      setEditedAbilities(abilitiesData);
     };
 
-    fetchSurfer();
+    fetchData();
   }, [id]);
 
   if (!surfer || !editedSurfer) {
@@ -34,7 +44,13 @@ const SurferDetails = () => {
     const db = getDatabase();
     const surferRef = ref(db, `users/surfers/${id}`);
     await update(surferRef, editedSurfer);
+    
+    // Update abilities in a single update call
+    const abilitiesRef = ref(db, `users/surfers/${id}/abilities`);
+    await update(abilitiesRef, editedAbilities);
+
     setSurfer(editedSurfer);
+    setAbilities(editedAbilities);
     setEditing(false);
   };
 
@@ -172,56 +188,6 @@ const SurferDetails = () => {
               setEditedSurfer({ ...editedSurfer, surfingSpeed: Number(text) })
             }
           />
-          <Text style={styles.label}>יכולות:</Text>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}></Text>
-            </View>
-            {editedSurfer.abilities && editedSurfer.abilities.map((ability, index) => (
-              <View key={index} style={styles.tableRowWrapper}>
-                <View style={styles.tableRow}>
-                  <TextInput
-                    style={styles.tableCell}
-                    value={ability.type}
-                    placeholder="סוג"
-                    onChangeText={(text) => {
-                      const newAbilities = [...editedSurfer.abilities];
-                      newAbilities[index] = { ...newAbilities[index], type: text };
-                      setEditedSurfer({ ...editedSurfer, abilities: newAbilities });
-                    }}
-                  />
-                  <TextInput
-                    style={styles.tableCell}
-                    value={ability.comments}
-                    placeholder="הערות"
-                    onChangeText={(text) => {
-                      const newAbilities = [...editedSurfer.abilities];
-                      newAbilities[index] = { ...newAbilities[index], comments: text };
-                      setEditedSurfer({ ...editedSurfer, abilities: newAbilities });
-                    }}
-                  />
-                </View>
-                  <TouchableOpacity onPress={() => {
-                    const newAbilities = editedSurfer.abilities.filter((_, i) => i !== index);
-                    setEditedSurfer({ ...editedSurfer, abilities: newAbilities });
-                  }}>
-                  <Icon name="trash" size={20} color="red" />
-                  </TouchableOpacity>
-              </View>
-            ))}
-            <Button
-              title="Add Ability"
-              onPress={() => {
-                const newAbility = { type: '', exists: false, comments: '' };
-                setEditedSurfer({
-                  ...editedSurfer,
-                  abilities: editedSurfer.abilities ? [...editedSurfer.abilities, newAbility] : [newAbility],
-                });
-              }}
-            />
-          </View>
           <Text style={styles.label}>ציוד מיוחד:</Text>
           <TextInput
             style={styles.input}
@@ -257,6 +223,43 @@ const SurferDetails = () => {
               }
             />
           </View>
+          {/* Abilities Editable Table */}
+          <Text style={styles.label}>יכולות:</Text>
+          <View style={styles.tableContainer}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+            </View>
+            {editedAbilities && Object.keys(editedAbilities).map((abilityKey) => (
+              <View key={abilityKey} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{editedAbilities[abilityKey].type}</Text>
+                <View style={[styles.tableCell, { flexDirection: 'row-reverse' }]}>
+                  <Switch
+                    value={editedAbilities[abilityKey].exists}
+                    onValueChange={(val) =>
+                      setEditedAbilities({
+                        ...editedAbilities,
+                        [abilityKey]: { ...editedAbilities[abilityKey], exists: val },
+                      })
+                    }
+                  />
+                </View>
+                <View style={styles.tableCell}>
+                  <TextInput
+                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
+                    value={editedAbilities[abilityKey].comments}
+                    onChangeText={(text) =>
+                      setEditedAbilities({
+                        ...editedAbilities,
+                        [abilityKey]: { ...editedAbilities[abilityKey], comments: text },
+                      })
+                    }
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
           <View style={styles.buttonRow}>
             <Button title="ביטול" onPress={() => {
               setEditedSurfer(surfer);
@@ -283,11 +286,25 @@ const SurferDetails = () => {
           <Text style={styles.label}>שנות ותק: {surfer.senioretyYears}</Text>
           <Text style={styles.label}>סוג חבל: {surfer.ropeType}</Text>
           <Text style={styles.label}>מהירות גלישה: {surfer.surfingSpeed}</Text>
-          <Text style={styles.label}>יכולות: {surfer.abilities ? surfer.abilities.join(', ') : ''}</Text>
           <Text style={styles.label}>ציוד מיוחד: {surfer.specialEquipment}</Text>
           <Text style={styles.label}>רתמה לכתף: {surfer.shoulderHarness ? 'כן' : 'לא'}</Text>
           <Text style={styles.label}>שייט: {surfer.paddle ? 'כן' : 'לא'}</Text>
           <Text style={styles.label}>מצופים: {surfer.floats ? 'כן' : 'לא'}</Text>
+          <Text style={styles.label}>יכולות:</Text>
+          <View style={styles.tableContainer}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+            </View>
+            {abilities && Object.keys(abilities).map((abilityKey) => (
+              <View key={abilityKey} style={styles.tableRow}>
+                <Text style={styles.tableCell}>{abilities[abilityKey].type}</Text>
+                <Text style={styles.tableCell}>{abilities[abilityKey].exists ? 'כן' : 'לא'}</Text>
+                <Text style={styles.tableCell}>{abilities[abilityKey].comments}</Text>
+              </View>
+            ))}
+          </View>
           <Button title="ערוך" onPress={() => setEditing(true)} />
         </>
       )}
@@ -343,6 +360,7 @@ const styles = StyleSheet.create({
   tableCell: {
     flex: 1,
     paddingHorizontal: 5,
+    textAlign: 'right',
   },
   headerCell: {
     fontWeight: 'bold',
