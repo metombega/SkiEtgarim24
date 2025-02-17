@@ -234,7 +234,7 @@ const SurferDetails = () => {
             {editedAbilities && Object.keys(editedAbilities).map((abilityKey) => (
               <View key={abilityKey} style={styles.tableRow}>
                 <Text style={styles.tableCell}>{editedAbilities[abilityKey].type}</Text>
-                <View style={[styles.tableCell, { flexDirection: 'row-reverse' }]}>
+                <View style={styles.tableCell}>
                   <Switch
                     value={editedAbilities[abilityKey].exists}
                     onValueChange={(val) =>
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tableHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#f0f0f0',
     paddingVertical: 5,
   },
@@ -352,12 +352,13 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     borderTopWidth: 1,
     borderColor: '#ccc',
     paddingVertical: 5,
   },
   tableCell: {
+    flexDirection: 'row-reverse',
     flex: 1,
     paddingHorizontal: 5,
     textAlign: 'right',
