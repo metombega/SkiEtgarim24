@@ -197,7 +197,7 @@ const SurferDetails = () => {
             }
           />
           <View style={styles.switchRow}>
-            <Text style={styles.label}>רתמה לכתף:</Text>
+            <Text style={styles.label}>רתמה לכתף: </Text>
             <Switch
               value={editedSurfer.shoulderHarness}
               onValueChange={(val) =>
@@ -206,7 +206,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>שייט:</Text>
+            <Text style={styles.label}>שייט: </Text>
             <Switch
               value={editedSurfer.paddle}
               onValueChange={(val) =>
@@ -215,7 +215,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>צפצופים (floats):</Text>
+            <Text style={styles.label}>צפצופים: </Text>
             <Switch
               value={editedSurfer.floats}
               onValueChange={(val) =>
@@ -320,6 +320,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 5,
+    fontWeight: 'bold',
   },
   input: {
     fontSize: 18,
@@ -327,6 +328,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 5,
+    textAlign: 'right',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -334,7 +336,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   switchRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 10,
   },
