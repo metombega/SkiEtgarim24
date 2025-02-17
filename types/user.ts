@@ -8,13 +8,10 @@ export interface User {
   height: number;
   age: number;
   sex: string;
-  emergencyContact: EmergencyContact;
+  emeregencyContactName: string;
+  emeregencyContactPhoneNumber: string;
 }
 
-export interface EmergencyContact {
-  name: string;
-  phoneNumber: string;
-}
 
 export interface ApprovedUser extends User {
   sittingSizeMessure: number;
@@ -56,3 +53,6 @@ export interface SurferAbility {
   exists: boolean;
   comments: string;
 }
+
+// create a const list of fake abilities
+export const surferAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];

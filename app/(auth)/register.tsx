@@ -16,6 +16,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
+import { surferAbilitiesTypes } from "../../types/user";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -37,7 +38,7 @@ export default function Register() {
     const db = getDatabase();
     if (auth.currentUser) {
       if (isSurfer) {
-      const surferRef = ref(db, "users/surfers/" + fullName);
+        const surferRef = ref(db, "users/surfers/" + fullName);
         await set(surferRef, {
           email,
           fullName,
@@ -49,7 +50,29 @@ export default function Register() {
           sex,
           isSurfer,
           isTeamMember,
+          // Additional fields from Surfer (and ApprovedUser) with default values
+          sittingSizeMessure: 0,
+          sittingPosition: 0,
+          floatingBeltSize: "",
+          joinYear: 0,
+          senioretyYears: 0,
+          ropeType: "",
+          surfingSpeed: 0,
+          specialEquipment: "",
+          shoulderHarness: false,
+          paddle: false,
+          floats: false,
         });
+
+        // Create a sub-folder for each surfer ability type with default values
+        for (const abilityType of surferAbilitiesTypes) {
+          const abilityRef = ref(db, "users/surfers/" + fullName + "/abilities/" + abilityType);
+          await set(abilityRef, {
+            type: abilityType,
+            exists: false,
+            comments: ""
+          });
+        }
       }
       if (isTeamMember) {
         const teamMemberRef = ref(db, "users/ski-team/" + fullName);
@@ -64,6 +87,14 @@ export default function Register() {
           sex,
           isSurfer,
           isTeamMember,
+          // Additional fields from Volunteer (extends ApprovedUser) with default values
+          sittingSizeMessure: 0,
+          sittingPosition: 0,
+          floatingBeltSize: "",
+          joinYear: 0,
+          senioretyYears: 0,
+          abilities: [],
+          certifications: [],
         });
       }
     } else {
