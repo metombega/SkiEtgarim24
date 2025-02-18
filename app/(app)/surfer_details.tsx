@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Button, TextInput, Switch, ScrollView, Touchabl
 import { get, getDatabase, ref, update } from "firebase/database";
 import { useLocalSearchParams } from 'expo-router';
 import { Surfer } from '@/types/user';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SurferDetails = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -197,7 +196,7 @@ const SurferDetails = () => {
             }
           />
           <View style={styles.switchRow}>
-            <Text style={styles.label}>רתמה לכתף:</Text>
+            <Text style={styles.label}>רתמה לכתף: </Text>
             <Switch
               value={editedSurfer.shoulderHarness}
               onValueChange={(val) =>
@@ -206,7 +205,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>שייט:</Text>
+            <Text style={styles.label}>שייט: </Text>
             <Switch
               value={editedSurfer.paddle}
               onValueChange={(val) =>
@@ -215,7 +214,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>צפצופים (floats):</Text>
+            <Text style={styles.label}>צפצופים: </Text>
             <Switch
               value={editedSurfer.floats}
               onValueChange={(val) =>
@@ -234,7 +233,7 @@ const SurferDetails = () => {
             {editedAbilities && Object.keys(editedAbilities).map((abilityKey) => (
               <View key={abilityKey} style={styles.tableRow}>
                 <Text style={styles.tableCell}>{editedAbilities[abilityKey].type}</Text>
-                <View style={[styles.tableCell, { flexDirection: 'row-reverse' }]}>
+                <View style={styles.tableCell}>
                   <Switch
                     value={editedAbilities[abilityKey].exists}
                     onValueChange={(val) =>
@@ -320,6 +319,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 5,
+    fontWeight: 'bold',
   },
   input: {
     fontSize: 18,
@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 5,
+    textAlign: 'right',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   switchRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     alignItems: 'center',
     marginBottom: 10,
   },
@@ -344,7 +345,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tableHeader: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     backgroundColor: '#f0f0f0',
     paddingVertical: 5,
   },
@@ -352,12 +353,13 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: 'row-reverse',
     borderTopWidth: 1,
     borderColor: '#ccc',
     paddingVertical: 5,
   },
   tableCell: {
+    flexDirection: 'row-reverse',
     flex: 1,
     paddingHorizontal: 5,
     textAlign: 'right',

@@ -16,7 +16,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
-import { surferAbilitiesTypes } from "../../types/user";
+import { surferAbilitiesTypes, volunteerAbilitiesTypes, volunteerCertificationsTypes } from "../../types/user";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -93,9 +93,26 @@ export default function Register() {
           floatingBeltSize: "",
           joinYear: 0,
           senioretyYears: 0,
-          abilities: [],
           certifications: [],
         });
+        // Create a sub-folder for each volunteer ability type with default values
+        for (const abilityType of volunteerAbilitiesTypes) {
+          const abilityRef = ref(db, "users/ski-team/" + fullName + "/abilities/" + abilityType);
+          await set(abilityRef, {
+            type: abilityType,
+            rank: 0,
+            comments: ""
+          });
+        }
+        // Create a sub-folder for each volunteer ability type with default values
+        for (const certificationType of volunteerCertificationsTypes) {
+          const certificationRef = ref(db, "users/ski-team/" + fullName + "/certifications/" + certificationType);
+          await set(certificationRef, {
+            type: certificationType,
+            exists: false,
+            comments: ""
+          });
+        }
       }
     } else {
       setErrorMessage("User is not authenticated");

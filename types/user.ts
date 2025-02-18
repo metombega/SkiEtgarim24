@@ -24,6 +24,8 @@ export interface ApprovedUser extends User {
 export interface Volunteer extends ApprovedUser {
   abilities: VolunteerAbility[];
   certifications: VolunteerCertification[];
+  isActivityManager: boolean;
+  isAdministrator: boolean;
 }
 
 export interface VolunteerAbility {
@@ -56,3 +58,5 @@ export interface SurferAbility {
 
 // create a const list of fake abilities
 export const surferAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];
+export const volunteerAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];
+export const volunteerCertificationsTypes = ['driver', 'paramedic', 'activity manager'];
