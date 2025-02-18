@@ -16,7 +16,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
-import { surferAbilitiesTypes, volunteerAbilitiesTypes, volunteerCertificationsTypes } from "../../types/user";
+import { surferAbilitiesTypes, twoSkiesAbilitiesTypes, kenSkiAbilitiesTypes, volunteerAbilitiesTypes, volunteerCertificationsTypes } from "../../types/user";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -70,7 +70,27 @@ export default function Register() {
           await set(abilityRef, {
             type: abilityType,
             exists: false,
-            comments: ""
+            comments: "",
+          });
+        }
+
+        // Create a sub-folder for each two skies ability type with default values
+        for (const abilityType of twoSkiesAbilitiesTypes) {
+          const abilityRef = ref(db, "users/surfers/" + fullName + "/twoSkiesAbilities/" + abilityType);
+          await set(abilityRef, {
+            type: abilityType,
+            exists: false,
+            comments: "",
+          });
+        }
+
+        // Create a sub-folder for each ken ski ability type with default values
+        for (const abilityType of kenSkiAbilitiesTypes) {
+          const abilityRef = ref(db, "users/surfers/" + fullName + "/kenSkiAbilities/" + abilityType);
+          await set(abilityRef, {
+            type: abilityType,
+            exists: false,
+            comments: "",
           });
         }
       }

@@ -44,6 +44,8 @@ export interface Surfer extends ApprovedUser {
   ropeType: string;
   surfingSpeed: number;
   abilities: SurferAbility[];
+  kenSkiAbilities: SurferAbility[];
+  twoSkiesAbilities: SurferAbility[];
   specialEquipment: string;
   shoulderHarness: boolean;
   paddle: boolean;
