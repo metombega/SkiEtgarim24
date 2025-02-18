@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Button, TextInput, Switch, ScrollView, Touchabl
 import { get, getDatabase, ref, update } from "firebase/database";
 import { useLocalSearchParams } from 'expo-router';
 import { Surfer } from '@/types/user';
-import Icon from 'react-native-vector-icons/FontAwesome';
 
 const SurferDetails = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
