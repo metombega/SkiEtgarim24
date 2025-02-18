@@ -12,8 +12,8 @@ export interface User {
   emeregencyContactPhoneNumber: string;
 }
 
-
 export interface ApprovedUser extends User {
+  sittingChairNumber: number;
   sittingSizeMessure: number;
   sittingPosition: number;
   floatingBeltSize: string;
@@ -57,6 +57,8 @@ export interface SurferAbility {
 }
 
 // create a const list of fake abilities
-export const surferAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];
-export const volunteerAbilitiesTypes = ['עמידה', 'כריעה', 'ישיבה', 'שכיבה'];
-export const volunteerCertificationsTypes = ['driver', 'paramedic', 'activity manager'];
+export const surferAbilitiesTypes = ['ken_ski', 'ken_ski_crack', 'ken_ski_carbon', 'two_skies_fifty_six', 'two_skies_small', 'surf_ski', 'wikboard', 'slalum'];
+export const twoSkiesAbilitiesTypes = ['standing_with_two_with_tbar', 'standing_with_two_with_separate_bar', 'standing_alone'];
+export const kenSkiAbilitiesTypes = ['sitting_with_two', 'sitting_with_one', 'sitting_alone'];
+export const volunteerAbilitiesTypes = ['standing_with_one', 'standing_alone', 'sitting_with_one', 'sitting_alone'];
+export const volunteerCertificationsTypes = ['activity_manager', 'ski_instructor', 'skipper', 'driver', 'paramedic'];
