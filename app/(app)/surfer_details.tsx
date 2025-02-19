@@ -289,12 +289,12 @@ const SurferDetails = () => {
           </View>
           
           {/* Ken Ski Abilities Editable Table */}
-          {editedKenSkiAbilities &&
-            Object.keys(editedKenSkiAbilities).some(
-              (key) => key.startsWith("ken_ski") && editedKenSkiAbilities[key].exists
+          {abilities &&
+            Object.keys(abilities).some(
+              (key) => key.startsWith("ken_ski") && abilities[key].exists
             ) && (
               <>
-                <Text style={styles.label}>Ken Ski Abilities:</Text>
+                <Text style={styles.label}>יכולות קן סקי:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
@@ -341,12 +341,12 @@ const SurferDetails = () => {
           
           {/* Two Skies Abilities Editable Table */}
           {editedTwoSkiesAbilities &&
-            Object.keys(editedTwoSkiesAbilities).some(
+            Object.keys(abilities).some(
               (key) =>
-                key.startsWith("two_skies") && editedTwoSkiesAbilities[key].exists
+                key.startsWith("two_skies") && abilities[key].exists
             ) && (
               <>
-                <Text style={styles.label}>Two Skies Abilities:</Text>
+                <Text style={styles.label}>יכולות שני סקי:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
