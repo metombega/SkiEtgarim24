@@ -233,7 +233,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>שייט: </Text>
+            <Text style={styles.label}>משוטים: </Text>
             <Switch
               value={editedSurfer.paddle}
               onValueChange={(val) =>
@@ -242,7 +242,7 @@ const SurferDetails = () => {
             />
           </View>
           <View style={styles.switchRow}>
-            <Text style={styles.label}>צפצופים: </Text>
+            <Text style={styles.label}>מצופים: </Text>
             <Switch
               value={editedSurfer.floats}
               onValueChange={(val) =>
@@ -346,7 +346,7 @@ const SurferDetails = () => {
                 key.startsWith("two_skies") && abilities[key].exists
             ) && (
               <>
-                <Text style={styles.label}>יכולות שני סקי:</Text>
+                <Text style={styles.label}>יכולות שני מגלשים:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
@@ -444,7 +444,7 @@ const SurferDetails = () => {
                 key.startsWith("ken_ski") && abilities[key].exists
             ) && (
               <>
-                <Text style={styles.label}>Ken Ski Abilities:</Text>
+                <Text style={styles.label}>יכולות קן סקי:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
@@ -475,7 +475,7 @@ const SurferDetails = () => {
                 key.startsWith("two_skies") && abilities[key].exists
             ) && (
               <>
-                <Text style={styles.label}>Two Skies Abilities:</Text>
+                <Text style={styles.label}>יכולות שני מגלשים:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
                     <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
