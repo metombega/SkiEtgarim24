@@ -289,80 +289,107 @@ const SurferDetails = () => {
           </View>
           
           {/* Ken Ski Abilities Editable Table */}
-          <Text style={styles.label}>Ken Ski Abilities:</Text>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
-            </View>
-            {editedKenSkiAbilities && Object.keys(editedKenSkiAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{editedKenSkiAbilities[abilityKey].type}</Text>
-                <View style={styles.tableCell}>
-                  <Switch
-                    value={editedKenSkiAbilities[abilityKey].exists}
-                    onValueChange={(val) =>
-                      setEditedKenSkiAbilities({
-                        ...editedKenSkiAbilities,
-                        [abilityKey]: { ...editedKenSkiAbilities[abilityKey], exists: val },
-                      })
-                    }
-                  />
+          {editedKenSkiAbilities &&
+            Object.keys(editedKenSkiAbilities).some(
+              (key) => key.startsWith("ken_ski") && editedKenSkiAbilities[key].exists
+            ) && (
+              <>
+                <Text style={styles.label}>Ken Ski Abilities:</Text>
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                  </View>
+                  {Object.keys(editedKenSkiAbilities).map((abilityKey) => (
+                    <View key={abilityKey} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>{editedKenSkiAbilities[abilityKey].type}</Text>
+                      <View style={styles.tableCell}>
+                        <Switch
+                          value={editedKenSkiAbilities[abilityKey].exists}
+                          onValueChange={(val) =>
+                            setEditedKenSkiAbilities({
+                              ...editedKenSkiAbilities,
+                              [abilityKey]: {
+                                ...editedKenSkiAbilities[abilityKey],
+                                exists: val,
+                              },
+                            })
+                          }
+                        />
+                      </View>
+                      <View style={styles.tableCell}>
+                        <TextInput
+                          style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
+                          value={editedKenSkiAbilities[abilityKey].comments}
+                          onChangeText={(text) =>
+                            setEditedKenSkiAbilities({
+                              ...editedKenSkiAbilities,
+                              [abilityKey]: {
+                                ...editedKenSkiAbilities[abilityKey],
+                                comments: text,
+                              },
+                            })
+                          }
+                        />
+                      </View>
+                    </View>
+                  ))}
                 </View>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
-                    value={editedKenSkiAbilities[abilityKey].comments}
-                    onChangeText={(text) =>
-                      setEditedKenSkiAbilities({
-                        ...editedKenSkiAbilities,
-                        [abilityKey]: { ...editedKenSkiAbilities[abilityKey], comments: text },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
+              </>
+          )}
           
           {/* Two Skies Abilities Editable Table */}
-          <Text style={styles.label}>Two Skies Abilities:</Text>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
-            </View>
-            {editedTwoSkiesAbilities && Object.keys(editedTwoSkiesAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{editedTwoSkiesAbilities[abilityKey].type}</Text>
-                <View style={styles.tableCell}>
-                  <Switch
-                    value={editedTwoSkiesAbilities[abilityKey].exists}
-                    onValueChange={(val) =>
-                      setEditedTwoSkiesAbilities({
-                        ...editedTwoSkiesAbilities,
-                        [abilityKey]: { ...editedTwoSkiesAbilities[abilityKey], exists: val },
-                      })
-                    }
-                  />
+          {editedTwoSkiesAbilities &&
+            Object.keys(editedTwoSkiesAbilities).some(
+              (key) =>
+                key.startsWith("two_skies") && editedTwoSkiesAbilities[key].exists
+            ) && (
+              <>
+                <Text style={styles.label}>Two Skies Abilities:</Text>
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                  </View>
+                  {Object.keys(editedTwoSkiesAbilities).map((abilityKey) => (
+                    <View key={abilityKey} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>{editedTwoSkiesAbilities[abilityKey].type}</Text>
+                      <View style={styles.tableCell}>
+                        <Switch
+                          value={editedTwoSkiesAbilities[abilityKey].exists}
+                          onValueChange={(val) =>
+                            setEditedTwoSkiesAbilities({
+                              ...editedTwoSkiesAbilities,
+                              [abilityKey]: {
+                                ...editedTwoSkiesAbilities[abilityKey],
+                                exists: val,
+                              },
+                            })
+                          }
+                        />
+                      </View>
+                      <View style={styles.tableCell}>
+                        <TextInput
+                          style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
+                          value={editedTwoSkiesAbilities[abilityKey].comments}
+                          onChangeText={(text) =>
+                            setEditedTwoSkiesAbilities({
+                              ...editedTwoSkiesAbilities,
+                              [abilityKey]: {
+                                ...editedTwoSkiesAbilities[abilityKey],
+                                comments: text,
+                              },
+                            })
+                          }
+                        />
+                      </View>
+                    </View>
+                  ))}
                 </View>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
-                    value={editedTwoSkiesAbilities[abilityKey].comments}
-                    onChangeText={(text) =>
-                      setEditedTwoSkiesAbilities({
-                        ...editedTwoSkiesAbilities,
-                        [abilityKey]: { ...editedTwoSkiesAbilities[abilityKey], comments: text },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
+              </>
+          )}
           
           <View style={styles.buttonRow}>
             <Button title="ביטול" onPress={() => {
@@ -411,38 +438,66 @@ const SurferDetails = () => {
           </View>
           
           {/* Ken Ski Abilities View Table */}
-          <Text style={styles.label}>Ken Ski Abilities:</Text>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
-            </View>
-            {kenSkiAbilities && Object.keys(kenSkiAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{kenSkiAbilities[abilityKey].type}</Text>
-                <Text style={styles.tableCell}>{kenSkiAbilities[abilityKey].exists ? 'כן' : 'לא'}</Text>
-                <Text style={styles.tableCell}>{kenSkiAbilities[abilityKey].comments}</Text>
-              </View>
-            ))}
-          </View>
+          {kenSkiAbilities &&
+            Object.keys(abilities).some(
+              (key) =>
+                key.startsWith("ken_ski") && abilities[key].exists
+            ) && (
+              <>
+                <Text style={styles.label}>Ken Ski Abilities:</Text>
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                  </View>
+                  {Object.keys(kenSkiAbilities).map((abilityKey) => (
+                    <View key={abilityKey} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>
+                        {kenSkiAbilities[abilityKey].type}
+                      </Text>
+                      <Text style={styles.tableCell}>
+                        {kenSkiAbilities[abilityKey].exists ? "כן" : "לא"}
+                      </Text>
+                      <Text style={styles.tableCell}>
+                        {kenSkiAbilities[abilityKey].comments}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+          )}
           
           {/* Two Skies Abilities View Table */}
-          <Text style={styles.label}>Two Skies Abilities:</Text>
-          <View style={styles.tableContainer}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-              <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
-            </View>
-            {twoSkiesAbilities && Object.keys(twoSkiesAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{twoSkiesAbilities[abilityKey].type}</Text>
-                <Text style={styles.tableCell}>{twoSkiesAbilities[abilityKey].exists ? 'כן' : 'לא'}</Text>
-                <Text style={styles.tableCell}>{twoSkiesAbilities[abilityKey].comments}</Text>
-              </View>
-            ))}
-          </View>
+          {twoSkiesAbilities &&
+            Object.keys(abilities).some(
+              (key) =>
+                key.startsWith("two_skies") && abilities[key].exists
+            ) && (
+              <>
+                <Text style={styles.label}>Two Skies Abilities:</Text>
+                <View style={styles.tableContainer}>
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                  </View>
+                  {Object.keys(twoSkiesAbilities).map((abilityKey) => (
+                    <View key={abilityKey} style={styles.tableRow}>
+                      <Text style={styles.tableCell}>
+                        {twoSkiesAbilities[abilityKey].type}
+                      </Text>
+                      <Text style={styles.tableCell}>
+                        {twoSkiesAbilities[abilityKey].exists ? "כן" : "לא"}
+                      </Text>
+                      <Text style={styles.tableCell}>
+                        {twoSkiesAbilities[abilityKey].comments}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+          )}
           
           <Button title="ערוך" onPress={() => setEditing(true)} />
         </>
