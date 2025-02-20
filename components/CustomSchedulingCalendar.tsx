@@ -2,15 +2,13 @@ import React, { FC, useState } from "react";
 import { Calendar, DateData } from "react-native-calendars";
 import { View, Button } from "react-native";
 
-// interface CalendarProps {
-//   // selectedDates and setSelectedDates removed from props; we're using local state
-// }
 type CalendarProps = {
   selectedDay: string | null;
   setSelectedDay: React.Dispatch<React.SetStateAction<string | null>>;
-  // other props
+  onSave: (selectedDates: string[]) => void;
 };
-const CustomCalendar: FC<CalendarProps> = () => {
+
+const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
 
   // Mark the dates from the last activity as grey and disable interaction
@@ -43,8 +41,7 @@ const CustomCalendar: FC<CalendarProps> = () => {
   };
 
   const handleSave = () => {
-    // Now simply console.log the selectedDays
-    console.log("Selected Days:", selectedDates);
+    onSave(selectedDates);
   };
 
   return (
