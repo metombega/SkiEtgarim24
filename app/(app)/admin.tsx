@@ -16,7 +16,7 @@ export default function Admin() {
           <CustomCalendar setSelectedDay={setSelectedDay} />
           <Button
             title="צור לוח פעילויות לעונה הבאה"
-            onPress={() => router.push('/schedualing')}
+            onPress={() => router.push('/scheduling')}
           />
         </View>
         <View style={styles.container}>

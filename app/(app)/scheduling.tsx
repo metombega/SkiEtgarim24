@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import CustomSchedualingCalendar from '../../components/CustomSchedualingCalendar';
+import CustomSchedulingCalendar from '../../components/CustomSchedulingCalendar';
 
-export default function Schedualing() {
+type CalendarProps = {
+  selectedDay: string | null;
+  setSelectedDay: React.Dispatch<React.SetStateAction<string | null>>;
+};
+
+export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   return (
@@ -14,7 +19,7 @@ export default function Schedualing() {
 
       <section id="step1" style={{ marginBottom: '40px' }}>
         <h2>שלב ראשון: קבע תאריכים לתקופה הקרובה</h2>
-        <CustomSchedualingCalendar selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
+        <CustomSchedulingCalendar selectedDay={selectedDay} setSelectedDay={setSelectedDay} />
       </section>
 
       <section id="step2" style={{ marginBottom: '40px' }}>
