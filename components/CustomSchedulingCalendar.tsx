@@ -1,17 +1,18 @@
 import React, { FC, useEffect, useState } from "react";
 import { Calendar, DateData } from "react-native-calendars";
 import { View, Button } from "react-native";
-import { getDatabase, ref, get, query, orderByChild, equalTo } from "firebase/database";
+import { getDatabase, ref, get } from "firebase/database";
 
 type CalendarProps = {
   selectedDay: string | null;
   setSelectedDay: React.Dispatch<React.SetStateAction<string | null>>;
   onSave: (selectedDates: string[]) => void;
+  scheduledDates: string[];
 };
 
 const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
-  const [selectedDates, setSelectedDates] = useState<string[]>([]);
-  const [firestoreDates, setFirestoreDates] = useState<string[]>([]);
+  // Replace separate states with one unified state
+  const [activeDates, setActiveDates] = useState<string[]>([]);
   
   // Static marked dates from last activity
   const markedDates: Record<
@@ -44,7 +45,7 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
             dates.push(date);
           }
         });
-        setFirestoreDates(dates);
+        setActiveDates(dates);
       } catch (error) {
         console.error("Error fetching Firestore dates:", error);
       }
@@ -62,39 +63,32 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
       return;
     }
 
-    // If the day is marked either by a firestore date or a user-selected date, remove it  
-    if (selectedDates.includes(day.dateString) || firestoreDates.includes(day.dateString)) {
-      setSelectedDates(selectedDates.filter(date => date !== day.dateString));
-      setFirestoreDates(firestoreDates.filter(date => date !== day.dateString));
+    // Toggle the date in activeDates
+    if (activeDates.includes(day.dateString)) {
+      setActiveDates(activeDates.filter(date => date !== day.dateString));
     } else {
-      setSelectedDates([...selectedDates, day.dateString]);
+      setActiveDates([...activeDates, day.dateString]);
     }
   };
 
   const handleSave = () => {
-    onSave(selectedDates);
+    onSave(activeDates);
   };
 
   return (
     <View>
       <Calendar
-      onDayPress={handleDayPress}
-      markedDates={{
-        ...markedDates,
-        // Mark dates fetched from Firestore as green and enable touches
-        ...firestoreDates.reduce((acc, date) => {
-        acc[date] = { selected: true, selectedColor: "green", marked: true };
-        return acc;
-        }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>),
-        // Mark dates that the user selected as green
-        ...selectedDates.reduce((acc, date) => {
-        acc[date] = { selected: true, selectedColor: "green", marked: true };
-        return acc;
-        }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>),
-      }}
+        onDayPress={handleDayPress}
+        markedDates={{
+          ...markedDates,
+          ...activeDates.reduce((acc, date) => {
+            acc[date] = { selected: true, selectedColor: "green", marked: true };
+            return acc;
+          }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>),
+        }}
       />
       <View style={{ marginTop: 20 }}>
-      <Button title="Save" onPress={handleSave} />
+        <Button title="Save" onPress={handleSave} />
       </View>
     </View>
   );

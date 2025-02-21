@@ -1,18 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import CustomSchedulingCalendar from '../../components/CustomSchedulingCalendar';
 import {
   getDatabase,
   ref,
   set,
+  remove,  // <-- Added remove import
   query,
   orderByChild,
   equalTo,
-  get as firebaseGet
+  get as firebaseGet,
 } from "firebase/database";
 
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+
+  // Define refs for each step
+  const step1Ref = useRef<View>(null);
+  const step2Ref = useRef<View>(null);
+  const step3Ref = useRef<View>(null);
+
+  // Function to scroll to a specific section (for web, ensure scrollIntoView works)
+  const scrollToSection = (section: 'step1' | 'step2' | 'step3') => {
+    let refToScroll;
+    if (section === 'step1') {
+      refToScroll = step1Ref?.current;
+    } else if (section === 'step2') {
+      refToScroll = step2Ref?.current;
+    } else {
+      refToScroll = step3Ref?.current;
+    }
+    // If using web or a scroll view that supports scrolling, otherwise implement as needed.
+    // @ts-ignore
+    refToScroll?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // Fetch scheduled dates where status is "initialized" when the component mounts
   useEffect(() => {
@@ -37,6 +59,17 @@ export default function Scheduling() {
 
   const handleSave = async (selectedDates: string[]) => {
     const db = getDatabase();
+
+    // Remove dates that were previously saved but are not in the new selection
+    for (const scheduledDate of scheduledDates) {
+      if (!selectedDates.includes(scheduledDate)) {
+        const activityDayRef = ref(db, "activities/" + scheduledDate);
+        console.log("Removing date:", scheduledDate);
+        await remove(activityDayRef);
+      }
+    }
+
+    // Save new or re-save selected dates
     for (const selectedDate of selectedDates) {
       const activityDayRef = ref(db, "activities/" + selectedDate);
       await set(activityDayRef, {
@@ -56,35 +89,44 @@ export default function Scheduling() {
         boat: null,
       });
     }
+    
+    // Update local state to reflect new selection
+    setScheduledDates(selectedDates);
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <nav style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
-        <a href="#step1" style={{ marginRight: '10px' }}>Step 1</a>
-        <a href="#step2" style={{ marginRight: '10px' }}>Step 2</a>
-        <a href="#step3">Step 3</a>
-      </nav>
+    <View style={{ padding: 20 }}>
+      <View style={{ marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 10 }}>
+        <TouchableOpacity onPress={() => scrollToSection('step1')} style={{ marginRight: 10 }}>
+          <Text>Step 1</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => scrollToSection('step2')} style={{ marginRight: 10 }}>
+          <Text>Step 2</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => scrollToSection('step3')}>
+          <Text>Step 3</Text>
+        </TouchableOpacity>
+      </View>
 
-      <section id="step1" style={{ marginBottom: '40px' }}>
-        <h2>שלב ראשון: קבע תאריכים לתקופה הקרובה</h2>
+      <View ref={step1Ref} style={{ marginBottom: 40 }}>
+        <Text style={{ fontSize: 24, marginBottom: 10 }}>שלב ראשון: קבע תאריכים לתקופה הקרובה</Text>
         <CustomSchedulingCalendar 
           selectedDay={selectedDay} 
           setSelectedDay={setSelectedDay} 
           onSave={handleSave}
           scheduledDates={scheduledDates} // pass the fetched dates to the calendar
         />
-      </section>
+      </View>
 
-      <section id="step2" style={{ marginBottom: '40px' }}>
-        <h2>Step 2</h2>
-        <p>Step 2</p>
-      </section>
+      <View ref={step2Ref} style={{ marginBottom: 40 }}>
+        <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 2</Text>
+        <Text>Step 2 Content</Text>
+      </View>
 
-      <section id="step3" style={{ marginBottom: '40px' }}>
-        <h2>Step 3</h2>
-        <p>Step 3</p>
-      </section>
-    </div>
+      <View ref={step3Ref} style={{ marginBottom: 40 }}>
+        <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 3</Text>
+        <Text>Step 3 Content</Text>
+      </View>
+    </View>
   );
 }
