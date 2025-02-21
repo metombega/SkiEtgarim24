@@ -1,28 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  Platform,
+} from "react-native";
 import { get, getDatabase, ref, remove } from "firebase/database";
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
-import { SurferDetailsNavigationProp } from './navigationTypes';
+import Icon from "react-native-vector-icons/FontAwesome";
+import { useNavigation } from "@react-navigation/native";
+import { SurferDetailsNavigationProp } from "./navigationTypes";
 
 const SurfersManagement = () => {
   const navigation = useNavigation<SurferDetailsNavigationProp>();
   const [surfers, setSurfers] = useState<any[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [filteredSurfers, setFilteredSurfers] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchSurfers = async () => {
-        const db = getDatabase();
-        const surfersRef = ref(db, "users/surfers/");
-        const snapshot = await get(surfersRef);
-        const surfersList = snapshot.val();
-        const surfersArray = Object.keys(surfersList).map(key => ({
-            id: key,
-            username: key,
-            ...surfersList[key],
-        }));
-        setSurfers(surfersArray);
+      const db = getDatabase();
+      const surfersRef = ref(db, "users/surfers/");
+      const snapshot = await get(surfersRef);
+      const surfersList = snapshot.val();
+      const surfersArray = Object.keys(surfersList).map((key) => ({
+        id: key,
+        username: key,
+        ...surfersList[key],
+      }));
+      setSurfers(surfersArray);
     };
 
     fetchSurfers();
@@ -37,33 +46,35 @@ const SurfersManagement = () => {
   }, [search, surfers]);
 
   const handleEdit = (id: string) => {
-    navigation.navigate('surfer_details', { id });
+    navigation.navigate("surfer_details", { id });
   };
 
   const handleDelete = (id: string) => {
     if (Platform.OS === "web") {
-      const confirmed = window.confirm("Are you sure you want to delete this surfer?");
+      const confirmed = window.confirm(
+        "Are you sure you want to delete this surfer?"
+      );
       if (!confirmed) return;
-      
+
       const db = getDatabase();
       const surferRef = ref(db, `users/surfers/${id}`);
       remove(surferRef);
-      setSurfers(surfers.filter(surfer => surfer.id !== id));
+      setSurfers(surfers.filter((surfer) => surfer.id !== id));
     } else {
       Alert.alert(
         "Confirm Deletion",
         "Are you sure you want to delete this surfer?",
         [
           { text: "Cancel", style: "cancel" },
-          { 
+          {
             text: "Yes",
             onPress: async () => {
               const db = getDatabase();
               const surferRef = ref(db, `users/surfers/${id}`);
               await remove(surferRef);
-              setSurfers(surfers.filter(surfer => surfer.id !== id));
-            }
-          }
+              setSurfers(surfers.filter((surfer) => surfer.id !== id));
+            },
+          },
         ]
       );
     }
@@ -105,23 +116,23 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
     marginBottom: 20,
     paddingHorizontal: 10,
   },
   surferItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'gray',
+    borderBottomColor: "gray",
   },
   icons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     width: 50,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
 });
 

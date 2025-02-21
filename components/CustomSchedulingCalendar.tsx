@@ -28,14 +28,12 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().status !== "initialized") {
             disabled.push(childSnapshot.key as string);
-          }
-          else {
+          } else {
             active.push(childSnapshot.key as string);
           }
         });
         setDisabledDates(disabled);
         setActiveDates(active);
-        
       } catch (error) {
         console.error("Error fetching disabled dates:", error);
       }
@@ -74,13 +72,17 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
   // Combine disabled dates and active dates for calendar marking
   const markedDates = {
     ...disabledDates.reduce((acc, date) => {
-      acc[date] = { selected: true, selectedColor: "grey", disableTouchEvent: true };
+      acc[date] = {
+        selected: true,
+        selectedColor: "grey",
+        disableTouchEvent: true,
+      };
       return acc;
     }, {} as Record<string, { selected: boolean; selectedColor: string; disableTouchEvent: boolean }>),
     ...activeDates.reduce((acc, date) => {
       acc[date] = { selected: true, selectedColor: "green", marked: true };
       return acc;
-    }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>)
+    }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>),
   };
 
   const handleSave = () => {

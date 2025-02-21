@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors } from '@/app/config/constants/constants';
+import React from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { Colors } from "@/app/config/constants/constants";
 
 interface CustomButtonProps {
   title: string;
@@ -9,7 +9,12 @@ interface CustomButtonProps {
   onPress: () => void;
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({ title, description, imageSource, onPress }) => {
+const CustomButton: React.FC<CustomButtonProps> = ({
+  title,
+  description,
+  imageSource,
+  onPress,
+}) => {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Image source={imageSource} style={styles.image} />
@@ -23,8 +28,8 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, description, imageSo
 
 const styles = StyleSheet.create({
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     marginVertical: 5,
     backgroundColor: Colors.light_orange,
@@ -40,11 +45,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
 });
 
