@@ -1,4 +1,4 @@
-import { Activity } from "@/types/activity_day";
+import { Activity } from "@/types/activityDay";
 import admin from 'firebase-admin';
 import { getDatabase } from 'firebase-admin/database';
 import { firebaseConfig } from '../app/config/firebase';

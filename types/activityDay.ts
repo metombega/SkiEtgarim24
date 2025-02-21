@@ -3,18 +3,19 @@ import { StartReport, EndReport } from "./reports";
 import { ActivityEquipment, Boat } from "./equipment";
 
 export interface Activity {
-    id: string;
     date: string;
-    ski_type: string;
+    status: string;
+    skiType: string;
     surfer: string;
-    number_of_additional_surfers: number;
-    number_of_additional_guests: number;
-    activity_manager: string;
+    numberOfAdditionalSurfers: number;
+    numberOfAdditionalGuests: number;
+    activityManager: string;
     volunteers: Volunteer[];
     startTime: string;
     endTime: string;
-    start_report: StartReport;
-    end_report: EndReport;
+    startReport: StartReport;
+    endReport: EndReport;
     equipments: ActivityEquipment[];
     boat: Boat;
 }
+const activityStatuses = ["Initialized", "Volunteers Assigned", "Surfer Assigned", "Finished", "Canceled"];
