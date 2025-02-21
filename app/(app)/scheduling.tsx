@@ -1,32 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomSchedulingCalendar from '../../components/CustomSchedulingCalendar';
-import { getDatabase, ref, set } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  set,
+  query,
+  orderByChild,
+  equalTo,
+  get as firebaseGet
+} from "firebase/database";
+
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+
+  // Fetch scheduled dates where status is "initialized" when the component mounts
+  useEffect(() => {
+    const db = getDatabase();
+    const activitiesRef = ref(db, "activities/");
+    const q = query(activitiesRef, orderByChild("status"), equalTo("initialized"));
+    firebaseGet(q)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const dates: string[] = [];
+          snapshot.forEach((childSnapshot) => {
+            // Optionally, you can use childSnapshot.val().date if saved in the payload
+            dates.push(childSnapshot.key || '');
+          });
+          setScheduledDates(dates);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching scheduled dates:", error);
+      });
+  }, []);
 
   const handleSave = async (selectedDates: string[]) => {
     const db = getDatabase();
-      // Save the activityDay at the location "users/activities/{date}"
-      for (const selectedDate of selectedDates) {
-        const activityDayRef = ref(db, "activities/" + selectedDate);
-        await set(activityDayRef, {
-          date: selectedDate,
-          status: 'initialized',
-          skiType: '',
-          surfer: '',
-          numberOfAdditionalSurfers: 0,
-          numberOfAdditionalGuests: 0,
-          activityManager: '',
-          volunteers: [],
-          startTime: '',
-          endTime: '',
-          // Depending on your types, you may adjust empty values for reports and boat
-          startReport: null,
-          endReport: null,
-          equipments: [],
-          boat: null,
-        });
-      }
+    for (const selectedDate of selectedDates) {
+      const activityDayRef = ref(db, "activities/" + selectedDate);
+      await set(activityDayRef, {
+        date: selectedDate,
+        status: 'initialized',
+        skiType: '',
+        surfer: '',
+        numberOfAdditionalSurfers: 0,
+        numberOfAdditionalGuests: 0,
+        activityManager: '',
+        volunteers: [],
+        startTime: '',
+        endTime: '',
+        startReport: null,
+        endReport: null,
+        equipments: [],
+        boat: null,
+      });
+    }
   };
 
   return (
@@ -42,7 +71,8 @@ export default function Scheduling() {
         <CustomSchedulingCalendar 
           selectedDay={selectedDay} 
           setSelectedDay={setSelectedDay} 
-          onSave={handleSave} 
+          onSave={handleSave}
+          scheduledDates={scheduledDates} // pass the fetched dates to the calendar
         />
       </section>
 
