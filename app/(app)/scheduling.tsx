@@ -96,11 +96,11 @@ export default function Scheduling() {
 
   return (
     <View style={{ padding: 20 }}>
-      <View style={{ marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 10 }}>
-        <TouchableOpacity onPress={() => scrollToSection('step1')} style={{ marginRight: 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20, borderBottomWidth: 1, borderBottomColor: '#ccc', paddingBottom: 10 }}>
+        <TouchableOpacity onPress={() => scrollToSection('step1')}>
           <Text>Step 1</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => scrollToSection('step2')} style={{ marginRight: 10 }}>
+        <TouchableOpacity onPress={() => scrollToSection('step2')}>
           <Text>Step 2</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => scrollToSection('step3')}>
