@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
 import CustomSchedulingCalendar from '../../components/CustomSchedulingCalendar';
-
+import { getDatabase, ref, set } from "firebase/database";
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  const handleSave = (selectedDates: string[]) => {
-    console.log("Selected Days in Scheduling:", selectedDates);
+  const handleSave = async (selectedDates: string[]) => {
+    const db = getDatabase();
+      // Save the activityDay at the location "users/activities/{date}"
+      for (const selectedDate of selectedDates) {
+        const activityDayRef = ref(db, "activities/" + selectedDate);
+        await set(activityDayRef, {
+          date: selectedDate,
+          status: 'initialized',
+          skiType: '',
+          surfer: '',
+          numberOfAdditionalSurfers: 0,
+          numberOfAdditionalGuests: 0,
+          activityManager: '',
+          volunteers: [],
+          startTime: '',
+          endTime: '',
+          // Depending on your types, you may adjust empty values for reports and boat
+          startReport: null,
+          endReport: null,
+          equipments: [],
+          boat: null,
+        });
+      }
   };
 
   return (

@@ -3,7 +3,6 @@ import { StartReport, EndReport } from "./reports";
 import { ActivityEquipment, Boat } from "./equipment";
 
 export interface Activity {
-    id: string;
     date: string;
     status: string;
     skiType: string;
