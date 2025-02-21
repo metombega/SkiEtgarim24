@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from "react";
 import { Calendar, DateData } from "react-native-calendars";
 import { View, Button } from "react-native";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, set } from "firebase/database";
 
 type CalendarProps = {
   selectedDay: string | null;
@@ -11,64 +11,76 @@ type CalendarProps = {
 };
 
 const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
-  // Replace separate states with one unified state
+  // State for active (toggled) dates
   const [activeDates, setActiveDates] = useState<string[]>([]);
-  
-  // Static marked dates from last activity
-  const markedDates: Record<
-    string,
-    { selected: boolean; selectedColor: string; disableTouchEvent?: boolean }
-  > = {
-    '2025-01-25': { selected: true, selectedColor: 'grey', disableTouchEvent: true },
-    '2025-01-26': { selected: true, selectedColor: 'grey', disableTouchEvent: true },
-    '2025-01-27': { selected: true, selectedColor: 'grey', disableTouchEvent: true },
-    '2025-01-28': { selected: true, selectedColor: 'grey', disableTouchEvent: true },
-  };
+  // State for disabled dates fetched from Firebase (status !== "initialized")
+  const [disabledDates, setDisabledDates] = useState<string[]>([]);
 
-  // Determine latest disabled date in the static markedDates
-  const latestDisabledDate = Object.keys(markedDates).reduce(
-    (max, date) => (date > max ? date : max),
-    Object.keys(markedDates)[0]
-  );
-
-  // Fetch dates from Firestore where status is 'initialized'
+  // Fetch disabled dates from Firebase (activities with status not equal to 'initialized')
   useEffect(() => {
-    const fetchFirestoreDates = async () => {
+    const fetchDisabledDates = async () => {
       try {
         const db = getDatabase();
-        const activitiesRef = ref(db, 'activities');
+        const activitiesRef = ref(db, "activities");
         const snapshot = await get(activitiesRef);
-        const dates: string[] = [];
+        const disabled: string[] = [];
+        const active: string[] = [];
         snapshot.forEach((childSnapshot) => {
-          const date = childSnapshot.key; // The key is the date
-          if (childSnapshot.val().status === 'initialized') {
-            dates.push(date);
+          if (childSnapshot.val().status !== "initialized") {
+            disabled.push(childSnapshot.key as string);
+          }
+          else {
+            active.push(childSnapshot.key as string);
           }
         });
-        setActiveDates(dates);
+        setDisabledDates(disabled);
+        setActiveDates(active);
+        
       } catch (error) {
-        console.error("Error fetching Firestore dates:", error);
+        console.error("Error fetching disabled dates:", error);
       }
     };
 
-    fetchFirestoreDates();
+    fetchDisabledDates();
   }, []);
 
+  // Optionally, if you still need to fetch dates for active selection,
+  // you can use a separate or combined Firebase query.
+  // For now, we keep the activeDates state as user interaction only.
+
+  // Determine the latest disabled date (if any)
+  const latestDisabledDate =
+    disabledDates.length > 0
+      ? disabledDates.reduce((max, date) => (date > max ? date : max))
+      : null;
+
   const handleDayPress = (day: DateData) => {
-    // Prevent toggling for static disabled dates or dates before the latest disabled date
+    // Prevent toggling for disabled dates or dates before the latest disabled date
     if (
-      markedDates[day.dateString]?.disableTouchEvent ||
-      day.dateString < latestDisabledDate
+      disabledDates.includes(day.dateString) ||
+      (latestDisabledDate && day.dateString < latestDisabledDate)
     ) {
       return;
     }
 
     // Toggle the date in activeDates
     if (activeDates.includes(day.dateString)) {
-      setActiveDates(activeDates.filter(date => date !== day.dateString));
+      setActiveDates(activeDates.filter((date) => date !== day.dateString));
     } else {
       setActiveDates([...activeDates, day.dateString]);
     }
+  };
+
+  // Combine disabled dates and active dates for calendar marking
+  const markedDates = {
+    ...disabledDates.reduce((acc, date) => {
+      acc[date] = { selected: true, selectedColor: "grey", disableTouchEvent: true };
+      return acc;
+    }, {} as Record<string, { selected: boolean; selectedColor: string; disableTouchEvent: boolean }>),
+    ...activeDates.reduce((acc, date) => {
+      acc[date] = { selected: true, selectedColor: "green", marked: true };
+      return acc;
+    }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>)
   };
 
   const handleSave = () => {
@@ -77,16 +89,7 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
 
   return (
     <View>
-      <Calendar
-        onDayPress={handleDayPress}
-        markedDates={{
-          ...markedDates,
-          ...activeDates.reduce((acc, date) => {
-            acc[date] = { selected: true, selectedColor: "green", marked: true };
-            return acc;
-          }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>),
-        }}
-      />
+      <Calendar onDayPress={handleDayPress} markedDates={markedDates} />
       <View style={{ marginTop: 20 }}>
         <Button title="Save" onPress={handleSave} />
       </View>
