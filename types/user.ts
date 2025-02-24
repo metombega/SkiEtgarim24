@@ -26,6 +26,7 @@ export interface Volunteer extends ApprovedUser {
   certifications: VolunteerCertification[];
   isActivityManager: boolean;
   isAdministrator: boolean;
+  signedForNextPeriod: boolean;
 }
 
 export interface VolunteerAbility {

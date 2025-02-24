@@ -129,6 +129,7 @@ export default function Register() {
           joinYear: 0,
           senioretyYears: 0,
           certifications: [],
+          SignedForNextPeriod: false,
         });
         // Create a sub-folder for each volunteer ability type with default values
         for (const abilityType of volunteerAbilitiesTypes) {

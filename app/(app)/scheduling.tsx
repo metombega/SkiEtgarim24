@@ -96,6 +96,31 @@ export default function Scheduling() {
 
     // Update local state to reflect new selection
     setScheduledDates(selectedDates);
+
+    // Reset all volunteers' signedForNextPeriod flag to false
+    try {
+      const skiTeamRef = ref(db, "users/ski-team");
+      const snapshot = await firebaseGet(skiTeamRef);
+      if (snapshot.exists()) {
+        const promises: any[] = [];
+        snapshot.forEach((childSnapshot) => {
+          const volunteerId = childSnapshot.key;
+          if (volunteerId) {
+            const volunteerFlagRef = ref(
+              db,
+              "users/ski-team/" + volunteerId + "/signedForNextPeriod"
+            );
+            promises.push(set(volunteerFlagRef, false));
+          }
+        });
+        await Promise.all(promises);
+      }
+    } catch (error) {
+      console.error(
+        "Error resetting signedForNextPeriod for volunteers:",
+        error
+      );
+    }
   };
 
   return (
