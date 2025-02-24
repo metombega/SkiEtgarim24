@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert, Platform } from "react-native";
 import CustomSchedulingCalendar from "../../components/CustomSchedulingCalendar";
 import {
   getDatabase,
@@ -159,18 +159,26 @@ export default function Scheduling() {
   // Handler for auto schedule button click in Step 2
   const handleCreateAutoSchedule = () => {
     if (signedVolunteers < totalVolunteers) {
-      console.log(`${signedVolunteers} < ${totalVolunteers}`);
-      Alert.alert(
-        "Not all volunteers signed in",
-        "Are you sure you want to continue?",
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "OK",
-            onPress: () => console.log("Auto schedule created"),
-          },
-        ]
-      );
+      if (Platform.OS === "web") {
+        const confirmed = window.confirm(
+          "Not all volunteers signed in. Are you sure you want to continue?"
+        );
+        if (confirmed) {
+          console.log("Auto schedule created");
+        }
+      } else {
+        Alert.alert(
+          "Not all volunteers signed in",
+          "Are you sure you want to continue?",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "OK",
+              onPress: () => console.log("Auto schedule created"),
+            },
+          ]
+        );
+      }
     } else {
       console.log("Auto schedule created");
     }
