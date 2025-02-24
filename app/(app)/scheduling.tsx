@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import CustomSchedulingCalendar from "../../components/CustomSchedulingCalendar";
 import {
   getDatabase,
@@ -11,12 +11,15 @@ import {
   equalTo,
   get as firebaseGet,
 } from "firebase/database";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // <-- new import
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Colors } from "../config/constants/constants";
 
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
-  const [step1Completed, setStep1Completed] = useState(false); // <-- new state
+  const [step1Completed, setStep1Completed] = useState(false);
+  const [totalVolunteers, setTotalVolunteers] = useState(0);
+  const [signedVolunteers, setSignedVolunteers] = useState(0);
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -32,19 +35,30 @@ export default function Scheduling() {
     });
   }, []);
 
-  // Function to scroll to a specific section (for web, ensure scrollIntoView works)
-  const scrollToSection = (section: "step1" | "step2" | "step3") => {
-    let refToScroll;
-    if (section === "step1") {
-      refToScroll = step1Ref?.current;
-    } else if (section === "step2") {
-      refToScroll = step2Ref?.current;
-    } else {
-      refToScroll = step3Ref?.current;
-    }
-    // @ts-ignore
-    refToScroll?.scrollIntoView({ behavior: "smooth" });
-  };
+  // Fetch volunteer signed status for ski-team
+  useEffect(() => {
+    const db = getDatabase();
+    const skiTeamRef = ref(db, "users/ski-team");
+    firebaseGet(skiTeamRef)
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          let total = 0;
+          let signed = 0;
+          snapshot.forEach((childSnapshot) => {
+            total += 1;
+            const data = childSnapshot.val();
+            if (data.signedForNextPeriod === true) {
+              signed += 1;
+            }
+          });
+          setTotalVolunteers(total);
+          setSignedVolunteers(signed);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching ski-team data:", error);
+      });
+  }, []);
 
   // Fetch scheduled dates where status is "initialized" when the component mounts
   useEffect(() => {
@@ -142,6 +156,34 @@ export default function Scheduling() {
     AsyncStorage.setItem("step1Completed", "false");
   };
 
+  // Handler for auto schedule button click in Step 2
+  const handleCreateAutoSchedule = () => {
+    if (signedVolunteers < totalVolunteers) {
+      console.log(`${signedVolunteers} < ${totalVolunteers}`);
+      Alert.alert(
+        "Not all volunteers signed in",
+        "Are you sure you want to continue?",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "OK",
+            onPress: () => console.log("Auto schedule created"),
+          },
+        ]
+      );
+    } else {
+      console.log("Auto schedule created");
+    }
+  };
+
+  // Calculate progress ratio
+  const progressRatio =
+    totalVolunteers > 0 ? signedVolunteers / totalVolunteers : 0;
+  // Calculate dynamic button color from red (0%) to green (100%)
+  const red = Math.floor(255 * (1 - progressRatio));
+  const green = Math.floor(255 * progressRatio);
+  const buttonColor = `rgb(${red}, ${green}, 0)`;
+
   return (
     <View style={{ padding: 20 }}>
       <View
@@ -191,9 +233,43 @@ export default function Scheduling() {
         </View>
       )}
 
+      {/* Step 2 with volunteer progress bar and auto schedule button */}
       <View ref={step2Ref} style={{ marginBottom: 40 }}>
         <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 2</Text>
-        <Text>Step 2 Content</Text>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ marginBottom: 5 }}>
+            {signedVolunteers} of {totalVolunteers} volunteers signed in
+          </Text>
+          <View
+            style={{
+              height: 20,
+              backgroundColor: "#eee",
+              borderRadius: 10,
+              overflow: "hidden",
+            }}
+          >
+            <View
+              style={{
+                height: "100%",
+                width: `${progressRatio * 100}%`,
+                backgroundColor: Colors.black,
+              }}
+            />
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={handleCreateAutoSchedule}
+          style={{
+            padding: 15,
+            backgroundColor: buttonColor,
+            borderRadius: 5,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ color: "#fff", fontWeight: "bold" }}>
+            Create Auto Schedule
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View ref={step3Ref} style={{ marginBottom: 40 }}>
@@ -202,4 +278,18 @@ export default function Scheduling() {
       </View>
     </View>
   );
+
+  // Helper function to scroll to section
+  function scrollToSection(section: "step1" | "step2" | "step3") {
+    let refToScroll;
+    if (section === "step1") {
+      refToScroll = step1Ref?.current;
+    } else if (section === "step2") {
+      refToScroll = step2Ref?.current;
+    } else {
+      refToScroll = step3Ref?.current;
+    }
+    // @ts-ignore
+    refToScroll?.scrollIntoView({ behavior: "smooth" });
+  }
 }
