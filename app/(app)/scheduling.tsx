@@ -20,6 +20,7 @@ export default function Scheduling() {
   const [step1Completed, setStep1Completed] = useState(false);
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
+  const [step2Completed, setStep2Completed] = useState(false);
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -31,6 +32,14 @@ export default function Scheduling() {
     AsyncStorage.getItem("step1Completed").then((value) => {
       if (value === "true") {
         setStep1Completed(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem("step2Completed").then((value) => {
+      if (value === "true") {
+        setStep2Completed(true);
       }
     });
   }, []);
@@ -156,15 +165,26 @@ export default function Scheduling() {
     AsyncStorage.setItem("step1Completed", "false");
   };
 
+  const handleEditStep2 = () => {
+    setStep2Completed(false);
+    AsyncStorage.setItem("step2Completed", "false");
+  };
+
   // Handler for auto schedule button click in Step 2
   const handleCreateAutoSchedule = () => {
+    const markStep2Completed = () => {
+      console.log("Auto schedule created");
+      setStep2Completed(true);
+      AsyncStorage.setItem("step2Completed", "true");
+    };
+
     if (signedVolunteers < totalVolunteers) {
       if (Platform.OS === "web") {
         const confirmed = window.confirm(
           "Not all volunteers signed in. Are you sure you want to continue?"
         );
         if (confirmed) {
-          console.log("Auto schedule created");
+          markStep2Completed();
         }
       } else {
         Alert.alert(
@@ -174,13 +194,13 @@ export default function Scheduling() {
             { text: "Cancel", style: "cancel" },
             {
               text: "OK",
-              onPress: () => console.log("Auto schedule created"),
+              onPress: markStep2Completed,
             },
           ]
         );
       }
     } else {
-      console.log("Auto schedule created");
+      markStep2Completed();
     }
   };
 
@@ -218,9 +238,7 @@ export default function Scheduling() {
       {/* Conditional rendering of Step 1 */}
       {!step1Completed ? (
         <View ref={step1Ref} style={{ marginBottom: 40 }}>
-          <Text style={{ fontSize: 24, marginBottom: 10 }}>
-            שלב ראשון: קבע תאריכים לתקופה הקרובה
-          </Text>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 1</Text>
           <CustomSchedulingCalendar
             selectedDay={selectedDay}
             setSelectedDay={setSelectedDay}
@@ -242,42 +260,57 @@ export default function Scheduling() {
       )}
 
       {/* Step 2 with volunteer progress bar and auto schedule button */}
+
       <View ref={step2Ref} style={{ marginBottom: 40 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 2</Text>
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ marginBottom: 5 }}>
-            {signedVolunteers} of {totalVolunteers} volunteers signed in
-          </Text>
-          <View
-            style={{
-              height: 20,
-              backgroundColor: "#eee",
-              borderRadius: 10,
-              overflow: "hidden",
-            }}
-          >
+        <Text style={{ fontSize: 24, marginBottom: 10 }}>
+          {step2Completed ? "Step 2 Completed" : "Step 2"}
+        </Text>
+        {!step2Completed && (
+          <View style={{ marginBottom: 20 }}>
+            <Text style={{ marginBottom: 5 }}>
+              {signedVolunteers} of {totalVolunteers} volunteers signed in
+            </Text>
             <View
               style={{
-                height: "100%",
-                width: `${progressRatio * 100}%`,
-                backgroundColor: Colors.black,
+                height: 20,
+                backgroundColor: "#eee",
+                borderRadius: 10,
+                overflow: "hidden",
               }}
-            />
+            >
+              <View
+                style={{
+                  height: "100%",
+                  width: `${progressRatio * 100}%`,
+                  backgroundColor: Colors.black,
+                }}
+              />
+            </View>
           </View>
-        </View>
-        <TouchableOpacity
-          onPress={handleCreateAutoSchedule}
-          style={{
-            padding: 15,
-            backgroundColor: buttonColor,
-            borderRadius: 5,
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "#fff", fontWeight: "bold" }}>
-            Create Auto Schedule
-          </Text>
-        </TouchableOpacity>
+        )}
+        {!step2Completed ? (
+          <TouchableOpacity
+            onPress={handleCreateAutoSchedule}
+            style={{
+              padding: 15,
+              backgroundColor: buttonColor,
+              borderRadius: 5,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>
+              Create Auto Schedule
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ marginBottom: 40 }}>
+            <TouchableOpacity onPress={handleEditStep2}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Edit Step 2
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View ref={step3Ref} style={{ marginBottom: 40 }}>
