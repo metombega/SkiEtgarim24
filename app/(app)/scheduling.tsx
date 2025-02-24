@@ -11,15 +11,26 @@ import {
   equalTo,
   get as firebaseGet,
 } from "firebase/database";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // <-- new import
 
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+  const [step1Completed, setStep1Completed] = useState(false); // <-- new state
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
   const step2Ref = useRef<View>(null);
   const step3Ref = useRef<View>(null);
+
+  // Load step1Completed flag from AsyncStorage on mount
+  useEffect(() => {
+    AsyncStorage.getItem("step1Completed").then((value) => {
+      if (value === "true") {
+        setStep1Completed(true);
+      }
+    });
+  }, []);
 
   // Function to scroll to a specific section (for web, ensure scrollIntoView works)
   const scrollToSection = (section: "step1" | "step2" | "step3") => {
@@ -31,7 +42,6 @@ export default function Scheduling() {
     } else {
       refToScroll = step3Ref?.current;
     }
-    // If using web or a scroll view that supports scrolling, otherwise implement as needed.
     // @ts-ignore
     refToScroll?.scrollIntoView({ behavior: "smooth" });
   };
@@ -50,7 +60,6 @@ export default function Scheduling() {
         if (snapshot.exists()) {
           const dates: string[] = [];
           snapshot.forEach((childSnapshot) => {
-            // Optionally, you can use childSnapshot.val().date if saved in the payload
             dates.push(childSnapshot.key || "");
           });
           setScheduledDates(dates);
@@ -97,6 +106,10 @@ export default function Scheduling() {
     // Update local state to reflect new selection
     setScheduledDates(selectedDates);
 
+    // Mark step 1 as completed and persist the change
+    setStep1Completed(true);
+    AsyncStorage.setItem("step1Completed", "true");
+
     // Reset all volunteers' signedForNextPeriod flag to false
     try {
       const skiTeamRef = ref(db, "users/ski-team");
@@ -123,6 +136,12 @@ export default function Scheduling() {
     }
   };
 
+  // Function to allow editing step 1
+  const handleEditStep1 = () => {
+    setStep1Completed(false);
+    AsyncStorage.setItem("step1Completed", "false");
+  };
+
   return (
     <View style={{ padding: 20 }}>
       <View
@@ -146,17 +165,31 @@ export default function Scheduling() {
         </TouchableOpacity>
       </View>
 
-      <View ref={step1Ref} style={{ marginBottom: 40 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>
-          שלב ראשון: קבע תאריכים לתקופה הקרובה
-        </Text>
-        <CustomSchedulingCalendar
-          selectedDay={selectedDay}
-          setSelectedDay={setSelectedDay}
-          onSave={handleSave}
-          scheduledDates={scheduledDates} // pass the fetched dates to the calendar
-        />
-      </View>
+      {/* Conditional rendering of Step 1 */}
+      {!step1Completed ? (
+        <View ref={step1Ref} style={{ marginBottom: 40 }}>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>
+            שלב ראשון: קבע תאריכים לתקופה הקרובה
+          </Text>
+          <CustomSchedulingCalendar
+            selectedDay={selectedDay}
+            setSelectedDay={setSelectedDay}
+            onSave={handleSave}
+            scheduledDates={scheduledDates}
+          />
+        </View>
+      ) : (
+        <View style={{ marginBottom: 40 }}>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>
+            Step 1 Completed
+          </Text>
+          <TouchableOpacity onPress={handleEditStep1}>
+            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+              Edit Step 1
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View ref={step2Ref} style={{ marginBottom: 40 }}>
         <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 2</Text>
