@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Switch, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  TextInput,
+  Switch,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { get, getDatabase, ref, update } from "firebase/database";
-import { useLocalSearchParams } from 'expo-router';
-import { Surfer } from '@/types/user';
+import { useLocalSearchParams } from "expo-router";
+import { Surfer } from "@/types/user";
 
 const SurferDetails = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -13,12 +22,13 @@ const SurferDetails = () => {
   const [kenSkiAbilities, setKenSkiAbilities] = useState<any>(null);
   const [editedKenSkiAbilities, setEditedKenSkiAbilities] = useState<any>(null);
   const [twoSkiesAbilities, setTwoSkiesAbilities] = useState<any>(null);
-  const [editedTwoSkiesAbilities, setEditedTwoSkiesAbilities] = useState<any>(null);
+  const [editedTwoSkiesAbilities, setEditedTwoSkiesAbilities] =
+    useState<any>(null);
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchData = async () => {
       const db = getDatabase();
       // Fetch surfer details
@@ -43,7 +53,10 @@ const SurferDetails = () => {
       setEditedKenSkiAbilities(kenSkiAbilitiesData);
 
       // Fetch Two Skies Abilities
-      const twoSkiesAbilitiesRef = ref(db, `users/surfers/${id}/twoSkiesAbilities`);
+      const twoSkiesAbilitiesRef = ref(
+        db,
+        `users/surfers/${id}/twoSkiesAbilities`
+      );
       const twoSkiesAbilitiesSnap = await get(twoSkiesAbilitiesRef);
       const twoSkiesAbilitiesData = twoSkiesAbilitiesSnap.val();
       setTwoSkiesAbilities(twoSkiesAbilitiesData);
@@ -61,7 +74,7 @@ const SurferDetails = () => {
     const db = getDatabase();
     const surferRef = ref(db, `users/surfers/${id}`);
     await update(surferRef, editedSurfer);
-    
+
     // Update abilities in a single update call
     const abilitiesRef = ref(db, `users/surfers/${id}/abilities`);
     await update(abilitiesRef, editedAbilities);
@@ -71,7 +84,10 @@ const SurferDetails = () => {
     await update(kenSkiAbilitiesRef, editedKenSkiAbilities);
 
     // Update Two Skies Abilities
-    const twoSkiesAbilitiesRef = ref(db, `users/surfers/${id}/twoSkiesAbilities`);
+    const twoSkiesAbilitiesRef = ref(
+      db,
+      `users/surfers/${id}/twoSkiesAbilities`
+    );
     await update(twoSkiesAbilitiesRef, editedTwoSkiesAbilities);
 
     setSurfer(editedSurfer);
@@ -150,7 +166,10 @@ const SurferDetails = () => {
             value={editedSurfer.emeregencyContactPhoneNumber}
             keyboardType="phone-pad"
             onChangeText={(text) =>
-              setEditedSurfer({ ...editedSurfer, emeregencyContactPhoneNumber: text })
+              setEditedSurfer({
+                ...editedSurfer,
+                emeregencyContactPhoneNumber: text,
+              })
             }
           />
           {/* New Fields */}
@@ -160,7 +179,10 @@ const SurferDetails = () => {
             value={editedSurfer.sittingSizeMessure?.toString()}
             keyboardType="numeric"
             onChangeText={(text) =>
-              setEditedSurfer({ ...editedSurfer, sittingSizeMessure: Number(text) })
+              setEditedSurfer({
+                ...editedSurfer,
+                sittingSizeMessure: Number(text),
+              })
             }
           />
           <Text style={styles.label}>מיקום ישיבה:</Text>
@@ -169,7 +191,10 @@ const SurferDetails = () => {
             value={editedSurfer.sittingPosition?.toString()}
             keyboardType="numeric"
             onChangeText={(text) =>
-              setEditedSurfer({ ...editedSurfer, sittingPosition: Number(text) })
+              setEditedSurfer({
+                ...editedSurfer,
+                sittingPosition: Number(text),
+              })
             }
           />
           <Text style={styles.label}>מידת חגורת ציפה:</Text>
@@ -258,36 +283,49 @@ const SurferDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {editedAbilities && Object.keys(editedAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{editedAbilities[abilityKey].type}</Text>
-                <View style={styles.tableCell}>
-                  <Switch
-                    value={editedAbilities[abilityKey].exists}
-                    onValueChange={(val) =>
-                      setEditedAbilities({
-                        ...editedAbilities,
-                        [abilityKey]: { ...editedAbilities[abilityKey], exists: val },
-                      })
-                    }
-                  />
+            {editedAbilities &&
+              Object.keys(editedAbilities).map((abilityKey) => (
+                <View key={abilityKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {editedAbilities[abilityKey].type}
+                  </Text>
+                  <View style={styles.tableCell}>
+                    <Switch
+                      value={editedAbilities[abilityKey].exists}
+                      onValueChange={(val) =>
+                        setEditedAbilities({
+                          ...editedAbilities,
+                          [abilityKey]: {
+                            ...editedAbilities[abilityKey],
+                            exists: val,
+                          },
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={styles.tableCell}>
+                    <TextInput
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#ccc",
+                        padding: 5,
+                      }}
+                      value={editedAbilities[abilityKey].comments}
+                      onChangeText={(text) =>
+                        setEditedAbilities({
+                          ...editedAbilities,
+                          [abilityKey]: {
+                            ...editedAbilities[abilityKey],
+                            comments: text,
+                          },
+                        })
+                      }
+                    />
+                  </View>
                 </View>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
-                    value={editedAbilities[abilityKey].comments}
-                    onChangeText={(text) =>
-                      setEditedAbilities({
-                        ...editedAbilities,
-                        [abilityKey]: { ...editedAbilities[abilityKey], comments: text },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ))}
+              ))}
           </View>
-          
+
           {/* Ken Ski Abilities Editable Table */}
           {abilities &&
             Object.keys(abilities).some(
@@ -297,13 +335,21 @@ const SurferDetails = () => {
                 <Text style={styles.label}>יכולות קן סקי:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
-                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      סוג
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      מוסמך
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      הערות
+                    </Text>
                   </View>
                   {Object.keys(editedKenSkiAbilities).map((abilityKey) => (
                     <View key={abilityKey} style={styles.tableRow}>
-                      <Text style={styles.tableCell}>{editedKenSkiAbilities[abilityKey].type}</Text>
+                      <Text style={styles.tableCell}>
+                        {editedKenSkiAbilities[abilityKey].type}
+                      </Text>
                       <View style={styles.tableCell}>
                         <Switch
                           value={editedKenSkiAbilities[abilityKey].exists}
@@ -320,7 +366,11 @@ const SurferDetails = () => {
                       </View>
                       <View style={styles.tableCell}>
                         <TextInput
-                          style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: "#ccc",
+                            padding: 5,
+                          }}
                           value={editedKenSkiAbilities[abilityKey].comments}
                           onChangeText={(text) =>
                             setEditedKenSkiAbilities({
@@ -337,25 +387,32 @@ const SurferDetails = () => {
                   ))}
                 </View>
               </>
-          )}
-          
+            )}
+
           {/* Two Skies Abilities Editable Table */}
           {editedTwoSkiesAbilities &&
             Object.keys(abilities).some(
-              (key) =>
-                key.startsWith("two_skies") && abilities[key].exists
+              (key) => key.startsWith("two_skies") && abilities[key].exists
             ) && (
               <>
                 <Text style={styles.label}>יכולות שני מגלשים:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
-                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      סוג
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      מוסמך
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      הערות
+                    </Text>
                   </View>
                   {Object.keys(editedTwoSkiesAbilities).map((abilityKey) => (
                     <View key={abilityKey} style={styles.tableRow}>
-                      <Text style={styles.tableCell}>{editedTwoSkiesAbilities[abilityKey].type}</Text>
+                      <Text style={styles.tableCell}>
+                        {editedTwoSkiesAbilities[abilityKey].type}
+                      </Text>
                       <View style={styles.tableCell}>
                         <Switch
                           value={editedTwoSkiesAbilities[abilityKey].exists}
@@ -372,7 +429,11 @@ const SurferDetails = () => {
                       </View>
                       <View style={styles.tableCell}>
                         <TextInput
-                          style={{ borderWidth: 1, borderColor: "#ccc", padding: 5 }}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: "#ccc",
+                            padding: 5,
+                          }}
                           value={editedTwoSkiesAbilities[abilityKey].comments}
                           onChangeText={(text) =>
                             setEditedTwoSkiesAbilities({
@@ -389,13 +450,16 @@ const SurferDetails = () => {
                   ))}
                 </View>
               </>
-          )}
-          
+            )}
+
           <View style={styles.buttonRow}>
-            <Button title="ביטול" onPress={() => {
-              setEditedSurfer(surfer);
-              setEditing(false);
-            }} />
+            <Button
+              title="ביטול"
+              onPress={() => {
+                setEditedSurfer(surfer);
+                setEditing(false);
+              }}
+            />
             <Button title="שמור" onPress={handleSave} />
           </View>
         </>
@@ -407,20 +471,36 @@ const SurferDetails = () => {
           <Text style={styles.label}>שם מלא: {surfer.fullName}</Text>
           <Text style={styles.label}>גובה: {surfer.height}</Text>
           <Text style={styles.label}>מין: {surfer.sex}</Text>
-          <Text style={styles.label}>איש קשר בחירום: {surfer.emeregencyContactName}</Text>
-          <Text style={styles.label}>טלפון איש קשר בחירום: {surfer.emeregencyContactPhoneNumber}</Text>
+          <Text style={styles.label}>
+            איש קשר בחירום: {surfer.emeregencyContactName}
+          </Text>
+          <Text style={styles.label}>
+            טלפון איש קשר בחירום: {surfer.emeregencyContactPhoneNumber}
+          </Text>
           {/* New Fields */}
-          <Text style={styles.label}>מידת ישיבה: {surfer.sittingSizeMessure}</Text>
-          <Text style={styles.label}>מיקום ישיבה: {surfer.sittingPosition}</Text>
-          <Text style={styles.label}>מידת חגורת ציפה: {surfer.floatingBeltSize}</Text>
+          <Text style={styles.label}>
+            מידת ישיבה: {surfer.sittingSizeMessure}
+          </Text>
+          <Text style={styles.label}>
+            מיקום ישיבה: {surfer.sittingPosition}
+          </Text>
+          <Text style={styles.label}>
+            מידת חגורת ציפה: {surfer.floatingBeltSize}
+          </Text>
           <Text style={styles.label}>שנת הצטרפות: {surfer.joinYear}</Text>
           <Text style={styles.label}>שנות ותק: {surfer.senioretyYears}</Text>
           <Text style={styles.label}>סוג חבל: {surfer.ropeType}</Text>
           <Text style={styles.label}>מהירות גלישה: {surfer.surfingSpeed}</Text>
-          <Text style={styles.label}>ציוד מיוחד: {surfer.specialEquipment}</Text>
-          <Text style={styles.label}>רתמה לכתף: {surfer.shoulderHarness ? 'כן' : 'לא'}</Text>
-          <Text style={styles.label}>שייט: {surfer.paddle ? 'כן' : 'לא'}</Text>
-          <Text style={styles.label}>מצופים: {surfer.floats ? 'כן' : 'לא'}</Text>
+          <Text style={styles.label}>
+            ציוד מיוחד: {surfer.specialEquipment}
+          </Text>
+          <Text style={styles.label}>
+            רתמה לכתף: {surfer.shoulderHarness ? "כן" : "לא"}
+          </Text>
+          <Text style={styles.label}>שייט: {surfer.paddle ? "כן" : "לא"}</Text>
+          <Text style={styles.label}>
+            מצופים: {surfer.floats ? "כן" : "לא"}
+          </Text>
           <Text style={styles.label}>יכולות:</Text>
           <View style={styles.tableContainer}>
             <View style={styles.tableHeader}>
@@ -428,28 +508,40 @@ const SurferDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {abilities && Object.keys(abilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{abilities[abilityKey].type}</Text>
-                <Text style={styles.tableCell}>{abilities[abilityKey].exists ? 'כן' : 'לא'}</Text>
-                <Text style={styles.tableCell}>{abilities[abilityKey].comments}</Text>
-              </View>
-            ))}
+            {abilities &&
+              Object.keys(abilities).map((abilityKey) => (
+                <View key={abilityKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].type}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].exists ? "כן" : "לא"}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].comments}
+                  </Text>
+                </View>
+              ))}
           </View>
-          
+
           {/* Ken Ski Abilities View Table */}
           {kenSkiAbilities &&
             Object.keys(abilities).some(
-              (key) =>
-                key.startsWith("ken_ski") && abilities[key].exists
+              (key) => key.startsWith("ken_ski") && abilities[key].exists
             ) && (
               <>
                 <Text style={styles.label}>יכולות קן סקי:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
-                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      סוג
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      מוסמך
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      הערות
+                    </Text>
                   </View>
                   {Object.keys(kenSkiAbilities).map((abilityKey) => (
                     <View key={abilityKey} style={styles.tableRow}>
@@ -466,21 +558,26 @@ const SurferDetails = () => {
                   ))}
                 </View>
               </>
-          )}
-          
+            )}
+
           {/* Two Skies Abilities View Table */}
           {twoSkiesAbilities &&
             Object.keys(abilities).some(
-              (key) =>
-                key.startsWith("two_skies") && abilities[key].exists
+              (key) => key.startsWith("two_skies") && abilities[key].exists
             ) && (
               <>
                 <Text style={styles.label}>יכולות שני מגלשים:</Text>
                 <View style={styles.tableContainer}>
                   <View style={styles.tableHeader}>
-                    <Text style={[styles.tableCell, styles.headerCell]}>סוג</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      סוג
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      מוסמך
+                    </Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>
+                      הערות
+                    </Text>
                   </View>
                   {Object.keys(twoSkiesAbilities).map((abilityKey) => (
                     <View key={abilityKey} style={styles.tableRow}>
@@ -497,8 +594,8 @@ const SurferDetails = () => {
                   ))}
                 </View>
               </>
-          )}
-          
+            )}
+
           <Button title="ערוך" onPress={() => setEditing(true)} />
         </>
       )}
@@ -514,58 +611,58 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     fontSize: 18,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     padding: 5,
-    textAlign: 'right',
+    textAlign: "right",
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
   },
   switchRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
+    flexDirection: "row-reverse",
+    alignItems: "center",
     marginBottom: 10,
   },
   tableContainer: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     marginBottom: 10,
   },
   tableHeader: {
-    flexDirection: 'row-reverse',
-    backgroundColor: '#f0f0f0',
+    flexDirection: "row-reverse",
+    backgroundColor: "#f0f0f0",
     paddingVertical: 5,
   },
   tableRowWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   tableRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse",
     borderTopWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     paddingVertical: 5,
   },
   tableCell: {
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse",
     flex: 1,
     paddingHorizontal: 5,
-    textAlign: 'right',
+    textAlign: "right",
   },
   headerCell: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   removeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: -40, // adjust as needed
-    top: '50%',
+    top: "50%",
     transform: [{ translateY: -12 }],
   },
 });

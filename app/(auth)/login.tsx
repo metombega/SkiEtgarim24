@@ -14,7 +14,7 @@ import { Colors } from "@/app/config/constants/constants";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); 
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async () => {
     try {

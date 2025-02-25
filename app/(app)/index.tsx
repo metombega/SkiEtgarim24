@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "expo-router";
-import { Colors } from '@/app/config/constants/constants';
+import { Colors } from "@/app/config/constants/constants";
 
 export default function Home() {
   const router = useRouter();
@@ -24,19 +24,31 @@ export default function Home() {
     <View style={styles.container}>
       <Text style={styles.title}>ברוכים הבאים לסקי אתגרים</Text>
       <View style={styles.row}>
-        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.red_primary }]} onPress={handleUserButtonPress("surfer")}>
+        <TouchableOpacity
+          style={[styles.userButton, { backgroundColor: Colors.red_primary }]}
+          onPress={handleUserButtonPress("surfer")}
+        >
           <Text style={[styles.userButtonText]}>גולש</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.green_primary }]} onPress={handleUserButtonPress("volunteer")}>
+        <TouchableOpacity
+          style={[styles.userButton, { backgroundColor: Colors.green_primary }]}
+          onPress={handleUserButtonPress("volunteer")}
+        >
           <Text style={[styles.userButtonText]}>מתנדב</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.row}>
-        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.light_blue }]} onPress={handleUserButtonPress("activity_manager")}>
+        <TouchableOpacity
+          style={[styles.userButton, { backgroundColor: Colors.light_blue }]}
+          onPress={handleUserButtonPress("activity_manager")}
+        >
           <Text style={styles.userButtonText}>אחראי משמרת</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.userButton, { backgroundColor: Colors.dark_orange }]} onPress={handleUserButtonPress("admin")}>
-          <Text style={[styles.userButtonText, ]}>רכז</Text>
+        <TouchableOpacity
+          style={[styles.userButton, { backgroundColor: Colors.dark_orange }]}
+          onPress={handleUserButtonPress("admin")}
+        >
+          <Text style={[styles.userButtonText]}>רכז</Text>
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -60,9 +72,9 @@ const styles = StyleSheet.create({
     color: Colors.light_orange,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
     paddingHorizontal: 20,
     marginBottom: 10,
   },
@@ -79,7 +91,7 @@ const styles = StyleSheet.create({
   },
   userButton: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     justifyContent: "center",
     padding: 10,
     marginHorizontal: 5,
@@ -90,6 +102,6 @@ const styles = StyleSheet.create({
   userButtonText: {
     fontSize: 18,
     color: Colors.black,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

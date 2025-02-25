@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { initializeAuth, browserLocalPersistence } from 'firebase/auth';
+import { initializeAuth, browserLocalPersistence } from "firebase/auth";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyBfGVa-ma220hj9aT2P-UlLspUqZp5YeSk",
@@ -17,7 +17,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
-  persistence: browserLocalPersistence
+  persistence: browserLocalPersistence,
 });
 
 export { auth };

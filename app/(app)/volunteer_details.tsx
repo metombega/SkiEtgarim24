@@ -1,13 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button, TextInput, Switch, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Button,
+  TextInput,
+  Switch,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { get, getDatabase, ref, update } from "firebase/database";
-import { useLocalSearchParams } from 'expo-router';
-import { Volunteer } from '@/types/user';
+import { useLocalSearchParams } from "expo-router";
+import { Volunteer } from "@/types/user";
 
 const VolunteerDetails = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
-  const [editedVolunteer, setEditedVolunteer] = useState<Volunteer | null>(null);
+  const [editedVolunteer, setEditedVolunteer] = useState<Volunteer | null>(
+    null
+  );
   const [abilities, setAbilities] = useState<any>(null);
   const [editedAbilities, setEditedAbilities] = useState<any>(null);
   const [certifications, setCertifications] = useState<any>(null);
@@ -16,7 +27,7 @@ const VolunteerDetails = () => {
 
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchData = async () => {
       const db = getDatabase();
       // Fetch volunteer details
@@ -33,12 +44,12 @@ const VolunteerDetails = () => {
       setAbilities(abilitiesData);
       setEditedAbilities(abilitiesData);
 
-        // Fetch certifications from the sub-folder
-        const certificationsRef = ref(db, `users/ski-team/${id}/certifications`);
-        const certificationsSnap = await get(certificationsRef);
-        const certificationsData = certificationsSnap.val();
-        setCertifications(certificationsData);
-        setEditedCertifications(certificationsData);
+      // Fetch certifications from the sub-folder
+      const certificationsRef = ref(db, `users/ski-team/${id}/certifications`);
+      const certificationsSnap = await get(certificationsRef);
+      const certificationsData = certificationsSnap.val();
+      setCertifications(certificationsData);
+      setEditedCertifications(certificationsData);
     };
 
     fetchData();
@@ -52,7 +63,7 @@ const VolunteerDetails = () => {
     const db = getDatabase();
     const volunteerRef = ref(db, `users/ski-team/${id}`);
     await update(volunteerRef, editedVolunteer);
-    
+
     // Update abilities in a single update call
     const abilitiesRef = ref(db, `users/ski-team/${id}/abilities`);
     await update(abilitiesRef, editedAbilities);
@@ -127,7 +138,10 @@ const VolunteerDetails = () => {
             style={styles.input}
             value={editedVolunteer.emeregencyContactName}
             onChangeText={(text) =>
-              setEditedVolunteer({ ...editedVolunteer, emeregencyContactName: text })
+              setEditedVolunteer({
+                ...editedVolunteer,
+                emeregencyContactName: text,
+              })
             }
           />
           <Text style={styles.label}>טלפון איש קשר בחירום:</Text>
@@ -136,7 +150,10 @@ const VolunteerDetails = () => {
             value={editedVolunteer.emeregencyContactPhoneNumber}
             keyboardType="phone-pad"
             onChangeText={(text) =>
-              setEditedVolunteer({ ...editedVolunteer, emeregencyContactPhoneNumber: text })
+              setEditedVolunteer({
+                ...editedVolunteer,
+                emeregencyContactPhoneNumber: text,
+              })
             }
           />
           {/* New Fields */}
@@ -146,7 +163,10 @@ const VolunteerDetails = () => {
             value={editedVolunteer.sittingSizeMessure?.toString()}
             keyboardType="numeric"
             onChangeText={(text) =>
-              setEditedVolunteer({ ...editedVolunteer, sittingSizeMessure: Number(text) })
+              setEditedVolunteer({
+                ...editedVolunteer,
+                sittingSizeMessure: Number(text),
+              })
             }
           />
           <Text style={styles.label}>מיקום ישיבה:</Text>
@@ -155,7 +175,10 @@ const VolunteerDetails = () => {
             value={editedVolunteer.sittingPosition?.toString()}
             keyboardType="numeric"
             onChangeText={(text) =>
-              setEditedVolunteer({ ...editedVolunteer, sittingPosition: Number(text) })
+              setEditedVolunteer({
+                ...editedVolunteer,
+                sittingPosition: Number(text),
+              })
             }
           />
           <Text style={styles.label}>מידת חגורת ציפה:</Text>
@@ -181,7 +204,10 @@ const VolunteerDetails = () => {
             value={editedVolunteer.senioretyYears?.toString()}
             keyboardType="numeric"
             onChangeText={(text) =>
-              setEditedVolunteer({ ...editedVolunteer, senioretyYears: Number(text) })
+              setEditedVolunteer({
+                ...editedVolunteer,
+                senioretyYears: Number(text),
+              })
             }
           />
           {/* Abilities Editable Table */}
@@ -192,36 +218,55 @@ const VolunteerDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>דירוג</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {editedAbilities && Object.keys(editedAbilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{editedAbilities[abilityKey].type}</Text>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5, textAlign: 'right'}}
-                    value={editedAbilities[abilityKey].rank?.toString()}
-                    keyboardType="numeric"
-                    onChangeText={(text) =>
-                      setEditedAbilities({
-                        ...editedAbilities,
-                        [abilityKey]: { ...editedAbilities[abilityKey], rank: Number(text) },
-                      })
-                    }
-                  />
+            {editedAbilities &&
+              Object.keys(editedAbilities).map((abilityKey) => (
+                <View key={abilityKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {editedAbilities[abilityKey].type}
+                  </Text>
+                  <View style={styles.tableCell}>
+                    <TextInput
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#ccc",
+                        padding: 5,
+                        textAlign: "right",
+                      }}
+                      value={editedAbilities[abilityKey].rank?.toString()}
+                      keyboardType="numeric"
+                      onChangeText={(text) =>
+                        setEditedAbilities({
+                          ...editedAbilities,
+                          [abilityKey]: {
+                            ...editedAbilities[abilityKey],
+                            rank: Number(text),
+                          },
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={styles.tableCell}>
+                    <TextInput
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#ccc",
+                        padding: 5,
+                        textAlign: "right",
+                      }}
+                      value={editedAbilities[abilityKey].comments}
+                      onChangeText={(text) =>
+                        setEditedAbilities({
+                          ...editedAbilities,
+                          [abilityKey]: {
+                            ...editedAbilities[abilityKey],
+                            comments: text,
+                          },
+                        })
+                      }
+                    />
+                  </View>
                 </View>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5, textAlign: 'right'}}
-                    value={editedAbilities[abilityKey].comments}
-                    onChangeText={(text) =>
-                      setEditedAbilities({
-                        ...editedAbilities,
-                        [abilityKey]: { ...editedAbilities[abilityKey], comments: text },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ))}
+              ))}
           </View>
           {/* Certifications Editable Table */}
           <Text style={styles.label}>יכולות:</Text>
@@ -231,40 +276,57 @@ const VolunteerDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {editedCertifications && Object.keys(editedCertifications).map((certificationKey) => (
-              <View key={certificationKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{editedCertifications[certificationKey].type}</Text>
-                <View style={styles.tableCell}>
-                  <Switch
-                    value={editedCertifications[certificationKey].exists}
-                    onValueChange={(val) =>
-                      setEditedCertifications({
-                        ...editedCertifications,
-                        [certificationKey]: { ...editedCertifications[certificationKey], exists: val },
-                      })
-                    }
-                  />
+            {editedCertifications &&
+              Object.keys(editedCertifications).map((certificationKey) => (
+                <View key={certificationKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {editedCertifications[certificationKey].type}
+                  </Text>
+                  <View style={styles.tableCell}>
+                    <Switch
+                      value={editedCertifications[certificationKey].exists}
+                      onValueChange={(val) =>
+                        setEditedCertifications({
+                          ...editedCertifications,
+                          [certificationKey]: {
+                            ...editedCertifications[certificationKey],
+                            exists: val,
+                          },
+                        })
+                      }
+                    />
+                  </View>
+                  <View style={styles.tableCell}>
+                    <TextInput
+                      style={{
+                        borderWidth: 1,
+                        borderColor: "#ccc",
+                        padding: 5,
+                        textAlign: "right",
+                      }}
+                      value={editedCertifications[certificationKey].comments}
+                      onChangeText={(text) =>
+                        setEditedCertifications({
+                          ...editedCertifications,
+                          [certificationKey]: {
+                            ...editedCertifications[certificationKey],
+                            comments: text,
+                          },
+                        })
+                      }
+                    />
+                  </View>
                 </View>
-                <View style={styles.tableCell}>
-                  <TextInput
-                    style={{ borderWidth: 1, borderColor: "#ccc", padding: 5, textAlign: 'right'}}
-                    value={editedCertifications[certificationKey].comments}
-                    onChangeText={(text) =>
-                      setEditedCertifications({
-                        ...editedCertifications,
-                        [certificationKey]: { ...editedCertifications[certificationKey], comments: text },
-                      })
-                    }
-                  />
-                </View>
-              </View>
-            ))}
+              ))}
           </View>
           <View style={styles.buttonRow}>
-            <Button title="ביטול" onPress={() => {
-              setEditedVolunteer(volunteer);
-              setEditing(false);
-            }} />
+            <Button
+              title="ביטול"
+              onPress={() => {
+                setEditedVolunteer(volunteer);
+                setEditing(false);
+              }}
+            />
             <Button title="שמור" onPress={handleSave} />
           </View>
         </>
@@ -276,12 +338,22 @@ const VolunteerDetails = () => {
           <Text style={styles.label}>שם מלא: {volunteer.fullName}</Text>
           <Text style={styles.label}>גובה: {volunteer.height}</Text>
           <Text style={styles.label}>מין: {volunteer.sex}</Text>
-          <Text style={styles.label}>איש קשר בחירום: {volunteer.emeregencyContactName}</Text>
-          <Text style={styles.label}>טלפון איש קשר בחירום: {volunteer.emeregencyContactPhoneNumber}</Text>
+          <Text style={styles.label}>
+            איש קשר בחירום: {volunteer.emeregencyContactName}
+          </Text>
+          <Text style={styles.label}>
+            טלפון איש קשר בחירום: {volunteer.emeregencyContactPhoneNumber}
+          </Text>
           {/* New Fields */}
-          <Text style={styles.label}>מידת ישיבה: {volunteer.sittingSizeMessure}</Text>
-          <Text style={styles.label}>מיקום ישיבה: {volunteer.sittingPosition}</Text>
-          <Text style={styles.label}>מידת חגורת ציפה: {volunteer.floatingBeltSize}</Text>
+          <Text style={styles.label}>
+            מידת ישיבה: {volunteer.sittingSizeMessure}
+          </Text>
+          <Text style={styles.label}>
+            מיקום ישיבה: {volunteer.sittingPosition}
+          </Text>
+          <Text style={styles.label}>
+            מידת חגורת ציפה: {volunteer.floatingBeltSize}
+          </Text>
           <Text style={styles.label}>שנת הצטרפות: {volunteer.joinYear}</Text>
           <Text style={styles.label}>שנות ותק: {volunteer.senioretyYears}</Text>
           <Text style={styles.label}>יכולות:</Text>
@@ -291,13 +363,20 @@ const VolunteerDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>דירוג</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {abilities && Object.keys(abilities).map((abilityKey) => (
-              <View key={abilityKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{abilities[abilityKey].type}</Text>
-                <Text style={styles.tableCell}>{abilities[abilityKey].rank}</Text>
-                <Text style={styles.tableCell}>{abilities[abilityKey].comments}</Text>
-              </View>
-            ))}
+            {abilities &&
+              Object.keys(abilities).map((abilityKey) => (
+                <View key={abilityKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].type}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].rank}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {abilities[abilityKey].comments}
+                  </Text>
+                </View>
+              ))}
           </View>
           <Text style={styles.label}>הסמכות:</Text>
           <View style={styles.tableContainer}>
@@ -306,13 +385,20 @@ const VolunteerDetails = () => {
               <Text style={[styles.tableCell, styles.headerCell]}>מוסמך</Text>
               <Text style={[styles.tableCell, styles.headerCell]}>הערות</Text>
             </View>
-            {certifications && Object.keys(certifications).map((certificationKey) => (
-              <View key={certificationKey} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{certifications[certificationKey].type}</Text>
-                <Text style={styles.tableCell}>{certifications[certificationKey].exists ? 'כן' : 'לא'}</Text>
-                <Text style={styles.tableCell}>{certifications[certificationKey].comments}</Text>
-              </View>
-            ))}
+            {certifications &&
+              Object.keys(certifications).map((certificationKey) => (
+                <View key={certificationKey} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>
+                    {certifications[certificationKey].type}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {certifications[certificationKey].exists ? "כן" : "לא"}
+                  </Text>
+                  <Text style={styles.tableCell}>
+                    {certifications[certificationKey].comments}
+                  </Text>
+                </View>
+              ))}
           </View>
           <Button title="ערוך" onPress={() => setEditing(true)} />
         </>
@@ -329,58 +415,58 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   input: {
     fontSize: 18,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     padding: 5,
-    textAlign: 'right',
+    textAlign: "right",
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
   },
   switchRow: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
+    flexDirection: "row-reverse",
+    alignItems: "center",
     marginBottom: 10,
   },
   tableContainer: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     marginBottom: 10,
   },
   tableHeader: {
-    flexDirection: 'row-reverse',
-    backgroundColor: '#f0f0f0',
+    flexDirection: "row-reverse",
+    backgroundColor: "#f0f0f0",
     paddingVertical: 5,
   },
   tableRowWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   tableRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse",
     borderTopWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     paddingVertical: 5,
   },
   tableCell: {
-    flexDirection: 'row-reverse',
+    flexDirection: "row-reverse",
     flex: 1,
     paddingHorizontal: 5,
-    textAlign: 'right',
+    textAlign: "right",
   },
   headerCell: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   removeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: -40, // adjust as needed
-    top: '50%',
+    top: "50%",
     transform: [{ translateY: -12 }],
   },
 });
