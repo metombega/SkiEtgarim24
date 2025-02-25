@@ -13,6 +13,7 @@ import {
 } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../config/constants/constants";
+import { autoSchedule } from "../../helpers/AutoSchedule";
 
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -173,7 +174,7 @@ export default function Scheduling() {
   // Handler for auto schedule button click in Step 2
   const handleCreateAutoSchedule = () => {
     const markStep2Completed = () => {
-      console.log("Auto schedule created");
+      autoSchedule();
       setStep2Completed(true);
       AsyncStorage.setItem("step2Completed", "true");
     };
