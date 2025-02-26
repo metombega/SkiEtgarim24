@@ -12,16 +12,7 @@ export default function Volunteer() {
   return (
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
-      <CustomVolunteerCalendar
-        volunteerId={userIdString}
-        selectedDay={selectedDay}
-        setSelectedDay={setSelectedDay}
-      />
-      <Button
-        title="Sign To Next Period"
-        onPress={() => alert(`Signed up for ${selectedDay}`)}
-        disabled={!selectedDay}
-      />
+      <CustomVolunteerCalendar volunteerId={userIdString} />
     </View>
   );
 }
