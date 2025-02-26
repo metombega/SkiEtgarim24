@@ -19,7 +19,6 @@ const VolunteerActivityCalendar: FC<VolunteerActivityCalendarProps> = ({
     const unsubscribeActivities = onValue(activitiesRef, (snapshot) => {
       volunteerListeners.forEach((unsubscribe) => unsubscribe());
       volunteerListeners = [];
-
       const activitiesData = snapshot.val() || {};
       const newMarkedDates: Record<string, any> = {};
 
@@ -38,18 +37,12 @@ const VolunteerActivityCalendar: FC<VolunteerActivityCalendarProps> = ({
         const volunteerRef = ref(db, `activities/${activityKey}/volunteers`);
         const unsubscribeVolunteer = onValue(volunteerRef, (volSnapshot) => {
           const volunteerData = volSnapshot.val() || {};
-          // Change the marking color to green if the volunteer is assigned
-          if (volunteerData[volunteerId]) {
-            newMarkedDates[activityDate] = {
-              selected: true,
-              selectedColor: "green",
-            };
-          } else {
-            newMarkedDates[activityDate] = {
-              selected: true,
-              selectedColor: "red",
-            };
-          }
+          // Check if volunteerData (an array-like object) contains the volunteerId
+          const isAssigned = Object.values(volunteerData).includes(volunteerId);
+          newMarkedDates[activityDate] = {
+            selected: true,
+            selectedColor: isAssigned ? "green" : "red",
+          };
           setMarkedDates({ ...newMarkedDates });
         });
         volunteerListeners.push(() =>

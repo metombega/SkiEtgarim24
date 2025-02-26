@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import { View, Button, StyleSheet, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomVolunteerCalendar from "@/components/CustomVolunteerCalendar";
+import { getAuth } from "firebase/auth";
 
 export default function Volunteer() {
   const router = useRouter();
-  const { userId } = useLocalSearchParams();
-  const userIdString = String(userId);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const auth = getAuth();
+  console.log(`User ID: ${auth.currentUser?.email}`);
 
   return (
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
-      <CustomVolunteerCalendar volunteerId={userIdString} />
+      <CustomVolunteerCalendar volunteerId={auth.currentUser?.email || ""} />
     </View>
   );
 }
