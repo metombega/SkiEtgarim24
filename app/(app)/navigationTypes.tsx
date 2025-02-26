@@ -6,8 +6,6 @@ export type RootStackParamList = {
   surfer_details: { id: string };
   VolunteersManagement: undefined;
   volunteer_details: { id: string };
-  volunteer: { id: string };
-  surfer: { id: string };
 };
 
 export type SurferDetailsRouteProp = RouteProp<
@@ -25,14 +23,4 @@ export type VolunteerDetailsRouteProp = RouteProp<
 export type VolunteerDetailsNavigationProp = StackNavigationProp<
   RootStackParamList,
   "volunteer_details"
->;
-export type VolunteerRouteProp = RouteProp<RootStackParamList, "volunteer">;
-export type VolunteerNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "volunteer"
->;
-export type SurferRouteProp = RouteProp<RootStackParamList, "surfer">;
-export type SurferNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  "surfer"
 >;
