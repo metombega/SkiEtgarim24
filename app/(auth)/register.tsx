@@ -6,16 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  //@ts-ignore
-  CheckBox,
-  //@ts-ignore
-  Picker,
 } from "react-native";
 import { router } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
+import Checkbox from "@react-native-community/checkbox";
+import { Picker } from "@react-native-picker/picker";
+
 import {
   surferAbilitiesTypes,
   twoSkiesAbilitiesTypes,
@@ -262,14 +261,14 @@ export default function Register() {
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isSurfer} onValueChange={setIsSurfer} />
+            <Checkbox value={isSurfer} onValueChange={setIsSurfer} />
             <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isTeamMember} onValueChange={setIsTeamMember} />
+            <Checkbox value={isTeamMember} onValueChange={setIsTeamMember} />
             <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
           </View>
         </View>
