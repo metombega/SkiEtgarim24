@@ -5,10 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Platform,
+  Modal,
 } from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
 import { getDatabase, ref, push, update } from "firebase/database";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { useNavigation } from "@react-navigation/native";
 
 export default function VolunteerSignToNextSeasonProcess() {
   const [weekdayDates, setWeekdayDates] = useState(0);
@@ -17,6 +19,8 @@ export default function VolunteerSignToNextSeasonProcess() {
   const [user, setUser] = useState<User | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -48,24 +52,28 @@ export default function VolunteerSignToNextSeasonProcess() {
         return;
       }
     }
-    const db = getDatabase();
-    console.log("Selected dates", selectedDates);
-    // Save volunteer in the activities
-    for (const selectedDate of selectedDates) {
-      const volunteerListRef = ref(
-        db,
-        "activities/" + selectedDate + "/available_volunteers"
-      );
-      push(volunteerListRef, user.uid)
-        .then(() => console.log("Volunteer added successfully!"))
-        .catch((error) => console.error("Error adding volunteer:", error));
+    try {
+      const db = getDatabase();
+      console.log("Selected dates", selectedDates);
+      // Save volunteer in the activities
+      for (const selectedDate of selectedDates) {
+        const volunteerListRef = ref(
+          db,
+          "activities/" + selectedDate + "/available_volunteers"
+        );
+        await push(volunteerListRef, user.uid);
+        console.log("Volunteer added successfully!");
+      }
+      const volunteerRef = ref(db, "users/ski-team/" + user.uid);
+      await update(volunteerRef, {
+        signedForNextPeriod: true,
+        weekdayDays: weekdayDates,
+        weekendDays: weekendDates,
+      });
+      setModalVisible(true);
+    } catch (error) {
+      console.error("Error saving data:", error);
     }
-    const volunteerRef = ref(db, "users/ski-team/" + user.uid);
-    update(volunteerRef, {
-      signedForNextPeriod: true,
-      weekdayDays: weekdayDates,
-      weekendDays: weekendDates,
-    });
   };
 
   return (
@@ -101,12 +109,27 @@ export default function VolunteerSignToNextSeasonProcess() {
           </TouchableOpacity>
         </View>
       </View>
+
       <CustomSigningCalendar
         selectedDay={selectedDay}
         setSelectedDay={setSelectedDay}
         onSave={handleSave}
         scheduledDates={scheduledDates}
       />
+
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Successfully Saved!</Text>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>Back to volunteer page</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -148,5 +171,31 @@ const styles = StyleSheet.create({
     fontSize: 20,
     minWidth: 40,
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: "#2196F3",
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  modalButtonText: {
+    color: "white",
+    fontSize: 16,
   },
 });
