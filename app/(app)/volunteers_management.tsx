@@ -28,7 +28,6 @@ const VolunteersManagement = () => {
       const volunteersList = snapshot.val();
       const volunteersArray = Object.keys(volunteersList).map((key) => ({
         id: key,
-        username: key,
         ...volunteersList[key],
       }));
       setVolunteers(volunteersArray);
@@ -40,7 +39,7 @@ const VolunteersManagement = () => {
   useEffect(() => {
     setFilteredVolunteers(
       volunteers.filter((volunteer) =>
-        volunteer.username?.toLowerCase().includes(search.toLowerCase())
+        volunteer.fullName?.toLowerCase().includes(search.toLowerCase())
       )
     );
   }, [search, volunteers]);
@@ -95,7 +94,7 @@ const VolunteersManagement = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.volunteerItem}>
-            <Text>{item.username}</Text>
+            <Text>{item.fullName}</Text>
             <View style={styles.icons}>
               <TouchableOpacity onPress={() => handleEdit(item.id)}>
                 <Icon name="edit" size={20} color="blue" />

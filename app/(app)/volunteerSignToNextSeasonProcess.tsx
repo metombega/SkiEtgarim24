@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
-import { getDatabase, ref, push } from "firebase/database";
+import { getDatabase, ref, push, set } from "firebase/database";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 export default function VolunteerSignToNextSeasonProcess() {
@@ -34,18 +40,32 @@ export default function VolunteerSignToNextSeasonProcess() {
       console.error("No user logged in!");
       return;
     }
+    if (Platform.OS === "web" && (weekdayDates === 0 || weekendDates === 0)) {
+      const confirmed = window.confirm(
+        "You have set either the weekday or weekend volunteering days to 0. Is that OK?"
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
     const db = getDatabase();
     console.log("Selected dates", selectedDates);
     // Save volunteer in the activities
     for (const selectedDate of selectedDates) {
       const volunteerListRef = ref(
         db,
-        "activities/" + selectedDate + "/volunteers"
+        "activities/" + selectedDate + "/available_volunteers"
       );
-      push(volunteerListRef, user.email)
+      push(volunteerListRef, user.uid)
         .then(() => console.log("Volunteer added successfully!"))
         .catch((error) => console.error("Error adding volunteer:", error));
     }
+    const volunteerRef = ref(db, "users/ski-team/" + user.uid);
+    set(volunteerRef, {
+      signedForNextPeriod: true,
+      weekdayDays: weekdayDates,
+      weekendDays: weekendDates,
+    });
   };
 
   return (
