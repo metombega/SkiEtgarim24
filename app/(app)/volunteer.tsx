@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
 import CustomVolunteerCalendar from "@/components/CustomVolunteerCalendar";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 export default function Volunteer() {
-  const router = useRouter();
   const auth = getAuth();
-  console.log(`User ID: ${auth.currentUser?.email}`);
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      console.log(`User ID: ${user?.email}`);
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   return (
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
-      <CustomVolunteerCalendar volunteerId={auth.currentUser?.email || ""} />
+      <CustomVolunteerCalendar volunteerId={user?.email || ""} />
     </View>
   );
 }
