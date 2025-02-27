@@ -67,8 +67,11 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
   }, {} as Record<string, { selected: boolean; selectedColor: string; marked: boolean }>);
 
   const handleSave = () => {
-    // Save the keys of the dateColors mapping
-    onSave(Object.keys(dateColors));
+    // Filter the dates to only include those with "green" as the color
+    const selectedGreenDates = Object.keys(dateColors).filter(
+      (date) => dateColors[date] === "green"
+    );
+    onSave(selectedGreenDates);
   };
 
   return (

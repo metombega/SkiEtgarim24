@@ -12,7 +12,6 @@ export default function Volunteer() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      console.log(`User ID: ${user?.email}`);
     });
     return () => unsubscribe();
   }, [auth]);

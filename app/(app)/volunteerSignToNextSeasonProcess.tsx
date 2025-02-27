@@ -1,11 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
-import { getDatabase, ref, set, remove } from "firebase/database";
+import { getDatabase, ref, push } from "firebase/database";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 export default function VolunteerSignToNextSeasonProcess() {
   const [weekdayDates, setWeekdayDates] = useState(0);
   const [weekendDates, setWeekendDates] = useState(0);
+  const auth = getAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   const incrementWeekday = () => setWeekdayDates(weekdayDates + 1);
   const decrementWeekday = () => {
@@ -16,42 +28,26 @@ export default function VolunteerSignToNextSeasonProcess() {
   const decrementWeekend = () => {
     if (weekendDates > 0) setWeekendDates(weekendDates - 1);
   };
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [scheduledDates, setScheduledDates] = useState<string[]>([]);
 
   const handleSave = async (selectedDates: string[]) => {
-    const db = getDatabase();
-
-    // Remove dates that were previously saved but are not in the new selection
-    for (const scheduledDate of scheduledDates) {
-      if (!selectedDates.includes(scheduledDate)) {
-        const activityDayRef = ref(db, "activities/" + scheduledDate);
-        console.log("Removing date:", scheduledDate);
-        await remove(activityDayRef);
-      }
+    if (!user) {
+      console.error("No user logged in!");
+      return;
     }
-
-    // Save new or re-save selected dates
+    const db = getDatabase();
+    console.log("Selected dates", selectedDates);
+    // Save volunteer in the activities
     for (const selectedDate of selectedDates) {
-      const activityDayRef = ref(db, "activities/" + selectedDate);
-      await set(activityDayRef, {
-        date: selectedDate,
-        status: "initialized",
-        skiType: "",
-        surfer: "",
-        numberOfAdditionalSurfers: 0,
-        numberOfAdditionalGuests: 0,
-        activityManager: "",
-        volunteers: [],
-        startTime: "",
-        endTime: "",
-        startReport: null,
-        endReport: null,
-        equipments: [],
-        boat: null,
-      });
+      const volunteerListRef = ref(
+        db,
+        "activities/" + selectedDate + "/volunteers"
+      );
+      push(volunteerListRef, user.email)
+        .then(() => console.log("Volunteer added successfully!"))
+        .catch((error) => console.error("Error adding volunteer:", error));
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Volunteer Sign Up for Next Season</Text>
