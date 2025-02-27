@@ -8,7 +8,7 @@ import {
   Modal,
 } from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
-import { getDatabase, ref, push, update } from "firebase/database";
+import { getDatabase, ref, push, update, get } from "firebase/database";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { useNavigation } from "@react-navigation/native";
 
@@ -28,6 +28,31 @@ export default function VolunteerSignToNextSeasonProcess() {
     });
     return () => unsubscribe();
   }, [auth]);
+
+  // Fetch saved data from the database once the user is available.
+  useEffect(() => {
+    if (user) {
+      const db = getDatabase();
+      const volunteerRef = ref(db, "users/ski-team/" + user.uid);
+      get(volunteerRef)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            if (data.weekdayDays !== undefined)
+              setWeekdayDates(data.weekdayDays);
+            if (data.weekendDays !== undefined)
+              setWeekendDates(data.weekendDays);
+            if (data.selectedDay !== undefined)
+              setSelectedDay(data.selectedDay);
+            if (data.scheduledDates !== undefined)
+              setScheduledDates(data.scheduledDates);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching volunteer data:", error);
+        });
+    }
+  }, [user]);
 
   const incrementWeekday = () => setWeekdayDates(weekdayDates + 1);
   const decrementWeekday = () => {
