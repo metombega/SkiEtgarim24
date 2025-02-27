@@ -7,7 +7,7 @@ import {
   Platform,
 } from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
-import { getDatabase, ref, push, set } from "firebase/database";
+import { getDatabase, ref, push, update } from "firebase/database";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 export default function VolunteerSignToNextSeasonProcess() {
@@ -61,7 +61,7 @@ export default function VolunteerSignToNextSeasonProcess() {
         .catch((error) => console.error("Error adding volunteer:", error));
     }
     const volunteerRef = ref(db, "users/ski-team/" + user.uid);
-    set(volunteerRef, {
+    update(volunteerRef, {
       signedForNextPeriod: true,
       weekdayDays: weekdayDates,
       weekendDays: weekendDates,

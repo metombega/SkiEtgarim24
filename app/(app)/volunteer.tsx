@@ -19,7 +19,7 @@ export default function Volunteer() {
   return (
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
-      <CustomVolunteerCalendar volunteerId={user?.email || ""} />
+      <CustomVolunteerCalendar volunteerId={user?.uid || ""} />
       <Button
         title="sign up for next season"
         onPress={() => router.push("/volunteerSignToNextSeasonProcess")}
