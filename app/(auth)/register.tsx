@@ -12,7 +12,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
-import Checkbox from "@react-native-community/checkbox";
+// import Checkbox from "@react-native-community/checkbox";
 import { Picker } from "@react-native-picker/picker";
 
 import {
@@ -259,7 +259,7 @@ export default function Register() {
       <View style={styles.formContainer}>
         <Text style={styles.title}>צור משתמש חדש</Text>
 
-        <View style={styles.inputContainer}>
+        {/* <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
             <Checkbox value={isSurfer} onValueChange={setIsSurfer} />
             <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
@@ -271,7 +271,7 @@ export default function Register() {
             <Checkbox value={isTeamMember} onValueChange={setIsTeamMember} />
             <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.inputContainer}>
           <TextInput

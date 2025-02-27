@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Button } from "react-native";
 import CustomVolunteerCalendar from "@/components/CustomVolunteerCalendar";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { router, useRouter } from "expo-router";
 
 export default function Volunteer() {
+  const router = useRouter();
   const auth = getAuth();
   const [user, setUser] = useState<User | null>(auth.currentUser);
 
@@ -19,6 +21,10 @@ export default function Volunteer() {
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
       <CustomVolunteerCalendar volunteerId={user?.email || ""} />
+      <Button
+        title="sign up for next season"
+        onPress={() => router.push("/volunteerSignToNextSeasonProcess")}
+      />
     </View>
   );
 }
