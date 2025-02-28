@@ -28,7 +28,8 @@ const SurfersManagement = () => {
       const surfersList = snapshot.val();
       const surfersArray = Object.keys(surfersList).map((key) => ({
         id: key,
-        username: key,
+        // Use fullName from the database; if not available, fallback to key
+        fullName: surfersList[key].fullName || key,
         ...surfersList[key],
       }));
       setSurfers(surfersArray);
@@ -40,7 +41,7 @@ const SurfersManagement = () => {
   useEffect(() => {
     setFilteredSurfers(
       surfers.filter((surfer) =>
-        surfer.username?.toLowerCase().includes(search.toLowerCase())
+        surfer.fullName?.toLowerCase().includes(search.toLowerCase())
       )
     );
   }, [search, surfers]);
@@ -93,7 +94,7 @@ const SurfersManagement = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.surferItem}>
-            <Text>{item.username}</Text>
+            <Text>{item.fullName}</Text>
             <View style={styles.icons}>
               <TouchableOpacity onPress={() => handleEdit(item.id)}>
                 <Icon name="edit" size={20} color="blue" />
