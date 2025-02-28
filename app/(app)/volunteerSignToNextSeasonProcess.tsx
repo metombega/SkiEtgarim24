@@ -8,7 +8,7 @@ import {
   Modal,
 } from "react-native";
 import CustomSigningCalendar from "../../components/CustomSigningCalendar";
-import { getDatabase, ref, push, update, get } from "firebase/database";
+import { getDatabase, ref, push, update, get, remove } from "firebase/database";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { useNavigation } from "@react-navigation/native";
 
@@ -44,10 +44,6 @@ export default function VolunteerSignToNextSeasonProcess() {
               setWeekendDates(data.weekendDays);
             if (data.selectedDay !== undefined)
               setSelectedDay(data.selectedDay);
-            // If you are already saving scheduledDates in the user profile,
-            // you can uncomment the next line.
-            // if (data.scheduledDates !== undefined)
-            //   setScheduledDates(data.scheduledDates);
           }
         })
         .catch((error) => {
@@ -111,16 +107,42 @@ export default function VolunteerSignToNextSeasonProcess() {
     try {
       const db = getDatabase();
       console.log("Selected dates", selectedDates);
-      // Save volunteer in the activities
-      for (const selectedDate of selectedDates) {
-        const volunteerListRef = ref(
-          db,
-          "activities/" + selectedDate + "/available_volunteers"
-        );
-        await push(volunteerListRef, user.uid);
-        console.log("Volunteer added successfully!");
+
+      // Remove volunteer from dates that were previously scheduled but now unmarked.
+      for (const date of scheduledDates) {
+        if (!selectedDates.includes(date)) {
+          const volunteersRef = ref(
+            db,
+            `activities/${date}/available_volunteers`
+          );
+          const snapshot = await get(volunteersRef);
+          snapshot.forEach((childSnapshot) => {
+            if (childSnapshot.val() === user.uid) {
+              const volunteerKeyRef = ref(
+                db,
+                `activities/${date}/available_volunteers/${childSnapshot.key}`
+              );
+              remove(volunteerKeyRef);
+              console.log(`Volunteer removed for date ${date}`);
+            }
+          });
+        }
       }
-      const volunteerRef = ref(db, "users/ski-team/" + user.uid);
+
+      // Add volunteer to dates that are now marked green and weren't scheduled before.
+      for (const selectedDate of selectedDates) {
+        if (!scheduledDates.includes(selectedDate)) {
+          const volunteerListRef = ref(
+            db,
+            `activities/${selectedDate}/available_volunteers`
+          );
+          await push(volunteerListRef, user.uid);
+          console.log(`Volunteer added for date ${selectedDate}`);
+        }
+      }
+
+      // Update volunteer user details.
+      const volunteerRef = ref(db, `users/ski-team/${user.uid}`);
       await update(volunteerRef, {
         signedForNextPeriod: true,
         weekdayDays: weekdayDates,
