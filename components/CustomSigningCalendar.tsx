@@ -10,13 +10,13 @@ type CalendarProps = {
   scheduledDates: string[];
 };
 
-const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
+const CustomCalendar: FC<CalendarProps> = ({ scheduledDates, onSave }) => {
   // Store dates that are allowed to be toggled
   const [initializedDates, setInitializedDates] = useState<string[]>([]);
   // State mapping for the date color: "orange" or "green"
   const [dateColors, setDateColors] = useState<Record<string, string>>({});
 
-  // Fetch initialized activities from the database on mount
+  // Fetch initialized activities from the database on mount (or when scheduledDates updates)
   useEffect(() => {
     const fetchActivities = async () => {
       const db = getDatabase();
@@ -32,16 +32,18 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
         }
       });
       setInitializedDates(active);
-      // Create a color mapping with "orange" as the default color for initialized dates
+      // Create a color mapping: mark dates found in scheduledDates as green, otherwise default to orange.
       const initialColors: Record<string, string> = {};
       active.forEach((date) => {
-        initialColors[date] = "orange";
+        initialColors[date] = scheduledDates.includes(date)
+          ? "green"
+          : "orange";
       });
       setDateColors(initialColors);
     };
 
     fetchActivities();
-  }, []);
+  }, [scheduledDates]);
 
   const handleDayPress = (day: DateData) => {
     // Only allow toggling if the date was initialized

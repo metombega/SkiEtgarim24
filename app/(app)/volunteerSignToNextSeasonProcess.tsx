@@ -29,7 +29,7 @@ export default function VolunteerSignToNextSeasonProcess() {
     return () => unsubscribe();
   }, [auth]);
 
-  // Fetch saved data from the database once the user is available.
+  // Fetch volunteer-specific data from the database.
   useEffect(() => {
     if (user) {
       const db = getDatabase();
@@ -44,12 +44,43 @@ export default function VolunteerSignToNextSeasonProcess() {
               setWeekendDates(data.weekendDays);
             if (data.selectedDay !== undefined)
               setSelectedDay(data.selectedDay);
-            if (data.scheduledDates !== undefined)
-              setScheduledDates(data.scheduledDates);
+            // If you are already saving scheduledDates in the user profile,
+            // you can uncomment the next line.
+            // if (data.scheduledDates !== undefined)
+            //   setScheduledDates(data.scheduledDates);
           }
         })
         .catch((error) => {
           console.error("Error fetching volunteer data:", error);
+        });
+    }
+  }, [user]);
+
+  // New effect: Load activities dates at which the user is an available volunteer.
+  useEffect(() => {
+    if (user) {
+      const db = getDatabase();
+      const activitiesRef = ref(db, "activities");
+      get(activitiesRef)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            const scheduled: string[] = [];
+            Object.keys(data).forEach((date) => {
+              const volunteers = data[date].available_volunteers;
+              if (volunteers) {
+                // Check if any volunteer entry equals the current user's uid.
+                const volunteerIds = Object.values(volunteers);
+                if (volunteerIds.includes(user.uid)) {
+                  scheduled.push(date);
+                }
+              }
+            });
+            setScheduledDates(scheduled);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching activities:", error);
         });
     }
   }, [user]);
