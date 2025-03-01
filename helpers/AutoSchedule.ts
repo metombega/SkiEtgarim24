@@ -1,7 +1,45 @@
+import { getDatabase, ref, get } from "firebase/database";
+
 type Worker = {
     maxWorkDays: number;
     expertises: string[];
 };
+
+export async function fetchWorkersFromFirebase(): Promise<Record<string, Worker>> {
+    const db = getDatabase();
+    const skiTeamRef = ref(db, "users/ski-team");
+    const snapshot = await get(skiTeamRef);
+    if (!snapshot.exists()) {
+        throw new Error("No worker data available in Firebase");
+    }
+    const fetchedData = snapshot.val();
+    const firebaseWorkers: Record<string, Worker> = {};
+    for (const uid in fetchedData) {
+        const userData = fetchedData[uid];
+        const maxWorkDays = userData.weekdayDays || 0;
+        // Assuming certifications is an object where the keys are expertises.
+        const expertises = userData.certifications ? Object.keys(userData.certifications) : [];
+        firebaseWorkers[uid] = { maxWorkDays, expertises };
+    }
+    return firebaseWorkers;
+}
+
+export async function fetchDateToWorkersFromFirebase(): Promise<Record<string, string[]>> {
+    const db = getDatabase();
+    const activitiesRef = ref(db, "activities");
+    const snapshot = await get(activitiesRef);
+    if (!snapshot.exists()) {
+        throw new Error("No activity data available in Firebase");
+    }
+    const fetchedData = snapshot.val();
+    const firebaseDateToWorkers: Record<string, string[]> = {};
+    for (const date in fetchedData) {
+        const availableVolunteersDict = fetchedData[date].available_volunteers || {};
+        const availableVolunteers = Object.values(availableVolunteersDict) as string[];
+        firebaseDateToWorkers[date] = availableVolunteers;
+    }
+    return firebaseDateToWorkers;
+}
 
 type Schedule = {
     workers: string[];
@@ -9,28 +47,28 @@ type Schedule = {
     expertises: Record<string, number>;
 };
 
-const workers: Record<string, Worker> = {
-    Alice: { maxWorkDays: 3, expertises: ["a", "b", "c"] },
-    Bob: { maxWorkDays: 2, expertises: ["c", "b"] },
-    Charlie: { maxWorkDays: 3, expertises: ["a", "b", "d"] },
-    David: { maxWorkDays: 4, expertises: ["b", "c", "e"] },
-    Eve: { maxWorkDays: 4, expertises: ["a", "b", "c", "d"] },
-    Frank: { maxWorkDays: 1, expertises: ["a", "b", "c", "d"] },
-    Grace: { maxWorkDays: 4, expertises: ["d", "b"] },
-    Heidi: { maxWorkDays: 1, expertises: ["d"] },
-    Ivan: { maxWorkDays: 2, expertises: ["a", "c"] },
-};
+let workers: Record<string, Worker> = {};
+let dateToWorkers: Record<string, string[]> = {};
 
-let dateToWorkers: Record<string, string[]> = {
-    "1/1/2025": ["Alice", "Charlie", "David", "Eve", "Grace", "Heidi", "Ivan"],
-    "2/1/2025": ["Alice", "David", "Eve", "Frank", "Grace", "Ivan"],
-    "3/1/2025": ["Alice", "Charlie", "David", "Frank", "Grace", "Ivan"],
-    "4/1/2025": ["Alice", "Charlie", "Frank", "Grace", "Ivan", "David"],
-    "5/1/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-    "6/1/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-};
+// Fetch workers and dateToWorkers from Firebase
+Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then(([fetchedWorkers, fetchedDateToWorkers]) => {
+    workers = fetchedWorkers;
+    dateToWorkers = fetchedDateToWorkers;
+    console.log(workers);
+    console.log(dateToWorkers);
+});
 
-const mandatoryExpertises: Record<string, number> = { a: 1, b: 2, c: 1, d: 0, e: 1 };
+// Commented out hardcoded dateToWorkers
+// let dateToWorkers: Record<string, string[]> = {
+//     "1/1/2025": ["Alice", "Charlie", "David", "Eve", "Grace", "Heidi", "Ivan"],
+//     "2/1/2025": ["Alice", "David", "Eve", "Frank", "Grace", "Ivan"],
+//     "3/1/2025": ["Alice", "Charlie", "David", "Frank", "Grace", "Ivan"],
+//     "4/1/2025": ["Alice", "Charlie", "Frank", "Grace", "Ivan", "David"],
+//     "5/1/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+//     "6/1/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+// };
+
+const mandatoryExpertises: Record<string, number> = { 'driver': 1};
 const numOfWorkersPerDay = 5;
 
 export function autoSchedule(): Record<string, Schedule> {
