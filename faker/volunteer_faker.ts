@@ -12,36 +12,36 @@ admin.initializeApp({
 });
 
 const createVolunteer = (id: string, certifications: string[], maxWeekdays: number, maxWeekends: number): Volunteer => {
-return {
-    id: id,
-    username: id,
-    phoneNumber: '1234567890',
-    email: `${id}@example.com`,
-    fullName: id,
-    height: 170,
-    age: 30,
-    sex: 'M',
-    emeregencyContactName: 'Emergency Contact',
-    emeregencyContactPhoneNumber: '0987654321',
-    sittingChairNumber: 1,
-    sittingSizeMessure: 1,
-    sittingPosition: 1,
-    floatingBeltSize: 'M',
-    joinYear: 2020,
-    senioretyYears: 2,
-    abilities: volunteerAbilitiesTypes.map(type => ({ type, rank: 1, comments: '' })),
-    certifications: volunteerCertificationsTypes.map(type => ({
-        type,
-        exists: certifications.includes(type),
-        comments: ''
-    })),
-    isActivityManager: false,
-    isAdministrator: false,
-    signedForNextPeriod: true,
-    maxWeekdays: maxWeekdays,
-    maxWeekends: maxWeekends,
-    maxWorkDays: maxWeekdays + maxWeekends,
-};
+  return {
+      id: id,
+      username: id,
+      phoneNumber: '1234567890',
+      email: `${id}@example.com`,
+      fullName: id,
+      height: 170,
+      age: 30,
+      sex: 'M',
+      emeregencyContactName: 'Emergency Contact',
+      emeregencyContactPhoneNumber: '0987654321',
+      sittingChairNumber: 1,
+      sittingSizeMessure: 1,
+      sittingPosition: 1,
+      floatingBeltSize: 'M',
+      joinYear: 2020,
+      senioretyYears: 2,
+      abilities: volunteerAbilitiesTypes.map(type => ({ type, rank: 1, comments: '' })),
+      certifications: volunteerCertificationsTypes.map(type => ({
+          type,
+          exists: certifications.includes(type),
+          comments: ''
+      })),
+      isActivityManager: false,
+      isAdministrator: false,
+      signedForNextPeriod: true,
+      maxWeekdays: maxWeekdays,
+      maxWeekends: maxWeekends,
+      maxWorkDays: maxWeekdays + maxWeekends,
+  };
 };
 
 const saveVolunteer = async (volunteer: Volunteer): Promise<void> => {
