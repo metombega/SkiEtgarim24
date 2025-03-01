@@ -69,7 +69,19 @@ Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then
 //     "6/1/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
 // };
 
-const mandatoryExpertises: Record<string, number> = { 'driver': 1};
+// const workers = {
+//     'Alice': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager', 'skipper'] },
+//     'Bob': { 'max_work_days': 2, 'experties': ['skipper', 'activity_manager'] },
+//     'Charlie': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager'] },
+//     'David': { 'max_work_days': 4, 'experties': ['activity_manager', 'skipper'] },
+//     'Eve': { 'max_work_days': 4, 'experties': ['driver', 'activity_manager', 'skipper'] },
+//     'Frank': { 'max_work_days': 1, 'experties': ['driver', 'activity_manager', 'skipper'] },
+//     'Grace': { 'max_work_days': 4, 'experties': ['activity_manager'] },
+//     'Heidi': { 'max_work_days': 1, 'experties': [] },
+//     'Ivan': { 'max_work_days': 2, 'experties': ['driver', 'skipper'] }
+//   };
+
+const mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 };
 const numOfWorkersPerDay = 5;
 
 export function autoSchedule(): Record<string, Schedule> {
