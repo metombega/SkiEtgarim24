@@ -17,8 +17,9 @@ export async function fetchWorkersFromFirebase(): Promise<Record<string, Worker>
     for (const uid in fetchedData) {
         const userData = fetchedData[uid];
         const maxWorkDays = userData.weekdayDays || 0;
-        // Assuming certifications is an object where the keys are expertises.
-        const expertises = userData.certifications ? Object.keys(userData.certifications) : [];
+        const expertises = userData.certifications 
+            ? Object.keys(userData.certifications).filter(cert => userData.certifications[cert].exists) 
+            : [];
         firebaseWorkers[uid] = { maxWorkDays, expertises };
     }
     return firebaseWorkers;
@@ -34,7 +35,7 @@ export async function fetchDateToWorkersFromFirebase(): Promise<Record<string, s
     const fetchedData = snapshot.val();
     const firebaseDateToWorkers: Record<string, string[]> = {};
     for (const date in fetchedData) {
-        const availableVolunteersDict = fetchedData[date].available_volunteers || {};
+        const availableVolunteersDict = fetchedData[date].availableVolunteers || {};
         const availableVolunteers = Object.values(availableVolunteersDict) as string[];
         firebaseDateToWorkers[date] = availableVolunteers;
     }

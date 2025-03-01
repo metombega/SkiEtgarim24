@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  CheckBox,
 } from "react-native";
 import { router } from "expo-router";
+import { Checkbox, Provider as PaperProvider } from "react-native-paper";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
@@ -273,14 +273,20 @@ export default function Register() {
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isSurfer} onValueChange={setIsSurfer} />
+            <Checkbox.Android
+              status={isSurfer ? "checked" : "unchecked"}
+              onPress={() => setIsSurfer(!isSurfer)}
+            />
             <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isTeamMember} onValueChange={setIsTeamMember} />
+            <Checkbox.Android
+              status={isTeamMember ? "checked" : "unchecked"}
+              onPress={() => setIsTeamMember(!isTeamMember)}
+            />
             <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
           </View>
         </View>

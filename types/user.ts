@@ -1,7 +1,6 @@
 export interface User {
   id: string;
   username: string;
-  password: string;
   phoneNumber: string;
   email: string;
   fullName: string;
@@ -27,6 +26,9 @@ export interface Volunteer extends ApprovedUser {
   isActivityManager: boolean;
   isAdministrator: boolean;
   signedForNextPeriod: boolean;
+  maxWorkDays: number;
+  maxWeekdays: number;
+  maxWeekends: number;
 }
 
 export interface VolunteerAbility {
@@ -64,4 +66,4 @@ export const surferAbilitiesTypes = ['ken_ski', 'ken_ski_crack', 'ken_ski_carbon
 export const twoSkiesAbilitiesTypes = ['standing_with_two_with_tbar', 'standing_with_two_with_separate_bar', 'standing_alone'];
 export const kenSkiAbilitiesTypes = ['sitting_with_two', 'sitting_with_one', 'sitting_alone'];
 export const volunteerAbilitiesTypes = ['standing_with_one', 'standing_alone', 'sitting_with_one', 'sitting_alone'];
-export const volunteerCertificationsTypes = ['activity_manager', 'ski_instructor', 'skipper', 'driver', 'paramedic'];
+export const volunteerCertificationsTypes = ['activity_manager', 'skipper', 'driver'];
