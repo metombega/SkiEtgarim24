@@ -1,106 +1,111 @@
-const activityDates: string[] = ['1/1/2025', '2/1/2025', '3/1/2025', '4/1/2025', '5/1/2025', '6/1/2025'];
-const workers: string[] = ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi', 'Ivan'];
-const experties: string[] = ['a', 'b', 'c', 'd'];
-
-// Define workers' expertise mapping
-const workersExperties: Record<string, string[]> = {
-    'Alice': ['a', 'b', 'c'], 
-    'Bob': ['c', 'b'], 
-    'Charlie': ['a', 'b', 'd'], 
-    'David': ['b', 'c', 'e'], 
-    'Eve': ['a', 'b', 'c', 'd'], 
-    'Frank': ['a', 'b', 'c', 'd'], 
-    'Grace': ['d', 'b'], 
-    'Heidi': ['d'], 
-    'Ivan': ['a', 'c']
+type Worker = {
+    maxWorkDays: number;
+    expertises: string[];
 };
 
-// Define workers' availability mapping
-const workersAvailability: Record<string, string[]> = {
-    'Alice': ['1/1/2025', '2/1/2025', '3/1/2025', '4/1/2025', '5/1/2025'], 
-    'Bob': ['5/1/2025', '6/1/2025'], 
-    'Charlie': ['1/1/2025',  '3/1/2025', '4/1/2025', '5/1/2025', '6/1/2025'], 
-    'David': ['1/1/2025', '2/1/2025', '3/1/2025', '5/1/2025', '6/1/2025'], 
-    'Eve': ['1/1/2025', '2/1/2025',  '5/1/2025', '6/1/2025'], 
-    'Frank': [ '2/1/2025', '3/1/2025', '4/1/2025', '5/1/2025', '6/1/2025'], 
-    'Grace': ['1/1/2025', '2/1/2025', '3/1/2025', '4/1/2025', '5/1/2025', '6/1/2025'], 
-    'Heidi': ['1/1/2025', '5/1/2025', '6/1/2025'], 
-    'Ivan': ['1/1/2025', '2/1/2025', '3/1/2025', '4/1/2025']
+type Schedule = {
+    workers: string[];
+    replaceableWorkers: string[];
+    expertises: Record<string, number>;
 };
 
-// Define the maximum workdays for each worker
-const workersMaxWorkDays: Record<string, number> = {
-    'Alice': 3, 
-    'Bob': 2, 
-    'Charlie': 3, 
-    'David': 4, 
-    'Eve': 4, 
-    'Frank': 1, 
-    'Grace': 4, 
-    'Heidi': 1, 
-    'Ivan': 2
+const workers: Record<string, Worker> = {
+    Alice: { maxWorkDays: 3, expertises: ["a", "b", "c"] },
+    Bob: { maxWorkDays: 2, expertises: ["c", "b"] },
+    Charlie: { maxWorkDays: 3, expertises: ["a", "b", "d"] },
+    David: { maxWorkDays: 4, expertises: ["b", "c", "e"] },
+    Eve: { maxWorkDays: 4, expertises: ["a", "b", "c", "d"] },
+    Frank: { maxWorkDays: 1, expertises: ["a", "b", "c", "d"] },
+    Grace: { maxWorkDays: 4, expertises: ["d", "b"] },
+    Heidi: { maxWorkDays: 1, expertises: ["d"] },
+    Ivan: { maxWorkDays: 2, expertises: ["a", "c"] },
 };
 
-// Define the mandatory expertise required per day
-const mandatoryExperties: Record<string, number> = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1};
+let dateToWorkers: Record<string, string[]> = {
+    "1/1/2025": ["Alice", "Charlie", "David", "Eve", "Grace", "Heidi", "Ivan"],
+    "2/1/2025": ["Alice", "David", "Eve", "Frank", "Grace", "Ivan"],
+    "3/1/2025": ["Alice", "Charlie", "David", "Frank", "Grace", "Ivan"],
+    "4/1/2025": ["Alice", "Charlie", "Frank", "Grace", "Ivan", "David"],
+    "5/1/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+    "6/1/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+};
+
+const mandatoryExpertises: Record<string, number> = { a: 1, b: 2, c: 1, d: 0, e: 1 };
 const numOfWorkersPerDay = 5;
 
-export function autoSchedule() {
-    // Sort dates by the number of available workers
-    const sortedActivityDates = [...activityDates].sort((a, b) => 
-        workers.filter(worker => workersAvailability[worker].includes(a)).length -
-        workers.filter(worker => workersAvailability[worker].includes(b)).length
-    );
-
-    const schedule: Record<string, any> = {};
+export function autoSchedule(): Record<string, Schedule> {
+    const schedule: Record<string, Schedule> = {};
+    
+    const sortedActivityDates = Object.keys(dateToWorkers).sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
     
     for (const date of sortedActivityDates) {
-        schedule[date] = { workers: [], replaceableWorkers: [] };
+        schedule[date] = { workers: [], replaceableWorkers: [], expertises: {} };
+        let availableWorkers = [...dateToWorkers[date]];
         
-        // Filter workers available on this date
-        let availableWorkers = workers.filter(worker => workersAvailability[worker].includes(date));
+        availableWorkers.sort((a, b) => {
+            const availableDaysA = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(a)).length;
+            const availableDaysB = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(b)).length;
+            return (availableDaysA / workers[a].maxWorkDays || Infinity) - (availableDaysB / workers[b].maxWorkDays || Infinity);
+        });
         
-        // Sort workers by their max work days divided by available days
-        availableWorkers.sort((a, b) => 
-            (workersAvailability[a].length / workersMaxWorkDays[a]) - 
-            (workersAvailability[b].length / workersMaxWorkDays[b])
-        );
-
-        let expertiesToBook = { ...mandatoryExperties };
+        let expertisesToBook = { ...mandatoryExpertises };
         let numOfWorkersBooked = numOfWorkersPerDay;
-
-        // Assign workers to expertise
-        for (const experty in expertiesToBook) {
-            let workersWithExperty = availableWorkers.filter(worker => workersExperties[worker].includes(experty));
-            
-            while (expertiesToBook[experty] > 0 && workersWithExperty.length > 0) {
-                const worker = workersWithExperty.shift()!;
-                availableWorkers = availableWorkers.filter(w => w !== worker);
-                workersMaxWorkDays[worker]--;
-                
-                for (const workerExperty of workersExperties[worker]) {
-                    expertiesToBook[workerExperty]--;
+        
+        for (const expertise in expertisesToBook) {
+            let workersWithExpertise = availableWorkers.filter(worker => workers[worker].expertises.includes(expertise));
+            while (expertisesToBook[expertise] > 0) {
+                if (workersWithExpertise.length > 0) {
+                    const worker = workersWithExpertise.shift()!;
+                    availableWorkers = availableWorkers.filter(w => w !== worker);
+                    workers[worker].maxWorkDays--;
+                    
+                    for (const workerExpertise of workers[worker].expertises) {
+                        expertisesToBook[workerExpertise]--;
+                    }
+                    
+                    numOfWorkersBooked--;
+                    schedule[date].workers.push(worker);
+                } else {
+                    console.log(`No more workers with expertise ${expertise} on date ${date}`);
+                    break;
                 }
-                
-                numOfWorkersBooked--;
-                schedule[date].workers.push(worker);
             }
         }
-
-        // Assign remaining workers if necessary
-        while (numOfWorkersBooked > 0) {
-            const worker = availableWorkers.shift();
-            if (!worker) break;
-            workersMaxWorkDays[worker]--;
+        
+        let expertisesNotBooked = Object.values(expertisesToBook).reduce((acc, val) => acc + (val > 0 ? val : 0), 0);
+        
+        while (numOfWorkersBooked > expertisesNotBooked && availableWorkers.length > 0) {
+            const worker = availableWorkers.shift()!;
+            workers[worker].maxWorkDays--;
+            
+            for (const workerExpertise of workers[worker].expertises) {
+                expertisesToBook[workerExpertise]--;
+            }
+            
             schedule[date].workers.push(worker);
             numOfWorkersBooked--;
         }
-
-        // Remove the date from workers' availability
-        for (const worker of workers) {
-            workersAvailability[worker] = workersAvailability[worker].filter(d => d !== date);
+        
+        delete dateToWorkers[date];
+        
+        for (const worker of schedule[date].workers) {
+            let isReplaceable = true;
+            for (const workerExpertise of workers[worker].expertises) {
+                if (expertisesToBook[workerExpertise] >= 0) {
+                    isReplaceable = false;
+                    break;
+                }
+            }
+            if (isReplaceable) {
+                schedule[date].replaceableWorkers.push(worker);
+            }
         }
+        
+        schedule[date].expertises = expertisesToBook;
     }
-    console.log(schedule);
+    
+    for (const date in schedule) {
+        console.log(`${date}: ${schedule[date].workers}`);
+    }
     return schedule;
 }
