@@ -16,12 +16,13 @@ export async function fetchWorkersFromFirebase(): Promise<Record<string, Worker>
     const firebaseWorkers: Record<string, Worker> = {};
     for (const uid in fetchedData) {
         const userData = fetchedData[uid];
-        const maxWorkDays = userData.weekdayDays || 0;
+        const maxWorkDays = userData.maxWorkDays;
         const expertises = userData.certifications 
-            ? Object.keys(userData.certifications).filter(cert => userData.certifications[cert].exists) 
+            ? Object.keys(userData.certifications).filter(cert => userData.certifications[cert].exists).map(cert => userData.certifications[cert].type)
             : [];
         firebaseWorkers[uid] = { maxWorkDays, expertises };
     }
+    console.log(firebaseWorkers);
     return firebaseWorkers;
 }
 
@@ -59,50 +60,46 @@ Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then
     console.log(dateToWorkers);
 });
 
-// Commented out hardcoded dateToWorkers
-// let dateToWorkers: Record<string, string[]> = {
-//     "1/1/2025": ["Alice", "Charlie", "David", "Eve", "Grace", "Heidi", "Ivan"],
-//     "2/1/2025": ["Alice", "David", "Eve", "Frank", "Grace", "Ivan"],
-//     "3/1/2025": ["Alice", "Charlie", "David", "Frank", "Grace", "Ivan"],
-//     "4/1/2025": ["Alice", "Charlie", "Frank", "Grace", "Ivan", "David"],
-//     "5/1/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-//     "6/1/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-// };
-
-// const workers = {
-//     'Alice': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager', 'skipper'] },
-//     'Bob': { 'max_work_days': 2, 'experties': ['skipper', 'activity_manager'] },
-//     'Charlie': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager'] },
-//     'David': { 'max_work_days': 4, 'experties': ['activity_manager', 'skipper'] },
-//     'Eve': { 'max_work_days': 4, 'experties': ['driver', 'activity_manager', 'skipper'] },
-//     'Frank': { 'max_work_days': 1, 'experties': ['driver', 'activity_manager', 'skipper'] },
-//     'Grace': { 'max_work_days': 4, 'experties': ['activity_manager'] },
-//     'Heidi': { 'max_work_days': 1, 'experties': [] },
-//     'Ivan': { 'max_work_days': 2, 'experties': ['driver', 'skipper'] }
-//   };
-
 const mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 };
 const numOfWorkersPerDay = 5;
 
-export function autoSchedule(): Record<string, Schedule> {
+export async function autoSchedule(workers: Record<string, Worker> = {}, dateToWorkers: Record<string, string[]> = {}): Promise<Record<string, Schedule>> {
+    if (Object.keys(workers).length === 0) {
+        workers = await fetchWorkersFromFirebase();
+    }
+    if (Object.keys(dateToWorkers).length === 0) {
+        dateToWorkers = await fetchDateToWorkersFromFirebase();
+    }
+
     const schedule: Record<string, Schedule> = {};
     
-    const sortedActivityDates = Object.keys(dateToWorkers).sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
+    const sortedActivityDates = Object.keys(dateToWorkers)
+        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+        .sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
+    console.log(sortedActivityDates);
     
     for (const date of sortedActivityDates) {
         schedule[date] = { workers: [], replaceableWorkers: [], expertises: {} };
         let availableWorkers = [...dateToWorkers[date]];
         
-        availableWorkers.sort((a, b) => {
-            const availableDaysA = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(a)).length;
-            const availableDaysB = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(b)).length;
-            return (availableDaysA / workers[a].maxWorkDays || Infinity) - (availableDaysB / workers[b].maxWorkDays || Infinity);
-        });
+        availableWorkers.sort((a, b) => a.localeCompare(b))
+            .sort((a, b) => {
+                const availableDaysA = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(a)).length;
+                const availableDaysB = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(b)).length;
+                return (availableDaysA / workers[a].maxWorkDays || Infinity) - (availableDaysB / workers[b].maxWorkDays || Infinity);
+            });
+        console.log(availableWorkers);
         
-        let expertisesToBook = { ...mandatoryExpertises };
+        let expertisesToBook = Object.keys(mandatoryExpertises)
+            .sort()
+            .reduce((acc, key) => {
+                acc[key] = mandatoryExpertises[key];
+                return acc;
+            }, {} as Record<string, number>);
         let numOfWorkersBooked = numOfWorkersPerDay;
         
         for (const expertise in expertisesToBook) {
+            console.log(expertise);
             let workersWithExpertise = availableWorkers.filter(worker => workers[worker].expertises.includes(expertise));
             while (expertisesToBook[expertise] > 0) {
                 if (workersWithExpertise.length > 0) {
