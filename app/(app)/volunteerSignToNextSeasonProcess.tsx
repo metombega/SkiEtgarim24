@@ -63,7 +63,7 @@ export default function VolunteerSignToNextSeasonProcess() {
             const data = snapshot.val();
             const scheduled: string[] = [];
             Object.keys(data).forEach((date) => {
-              const volunteers = data[date].available_volunteers;
+              const volunteers = data[date].availableVolunteers;
               if (volunteers) {
                 // Check if any volunteer entry equals the current user's uid.
                 const volunteerIds = Object.values(volunteers);
@@ -113,14 +113,14 @@ export default function VolunteerSignToNextSeasonProcess() {
         if (!selectedDates.includes(date)) {
           const volunteersRef = ref(
             db,
-            `activities/${date}/available_volunteers`
+            `activities/${date}/availableVolunteers`
           );
           const snapshot = await get(volunteersRef);
           snapshot.forEach((childSnapshot) => {
             if (childSnapshot.val() === user.uid) {
               const volunteerKeyRef = ref(
                 db,
-                `activities/${date}/available_volunteers/${childSnapshot.key}`
+                `activities/${date}/availableVolunteers/${childSnapshot.key}`
               );
               remove(volunteerKeyRef);
               console.log(`Volunteer removed for date ${date}`);
@@ -134,7 +134,7 @@ export default function VolunteerSignToNextSeasonProcess() {
         if (!scheduledDates.includes(selectedDate)) {
           const volunteerListRef = ref(
             db,
-            `activities/${selectedDate}/available_volunteers`
+            `activities/${selectedDate}/availableVolunteers`
           );
           await push(volunteerListRef, user.uid);
           console.log(`Volunteer added for date ${selectedDate}`);

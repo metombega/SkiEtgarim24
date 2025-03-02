@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { get, getDatabase, ref, remove } from "firebase/database";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { Pencil, Trash } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SurferDetailsNavigationProp } from "./navigationTypes";
 
@@ -97,10 +97,10 @@ const SurfersManagement = () => {
             <Text>{item.fullName}</Text>
             <View style={styles.icons}>
               <TouchableOpacity onPress={() => handleEdit(item.id)}>
-                <Icon name="edit" size={20} color="blue" />
+                <Pencil size={20} color="blue" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                <Icon name="trash" size={20} color="red" />
+                <Trash size={20} color="red" />
               </TouchableOpacity>
             </View>
           </View>
