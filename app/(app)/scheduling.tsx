@@ -34,6 +34,7 @@ export default function Scheduling() {
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
+  const [step3Completed, setStep3Completed] = useState(false); // Step 3 completion state
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -53,6 +54,14 @@ export default function Scheduling() {
     AsyncStorage.getItem("step2Completed").then((value) => {
       if (value === "true") {
         setStep2Completed(true);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    AsyncStorage.getItem("step3Completed").then((value) => {
+      if (value === "true") {
+        setStep3Completed(true);
       }
     });
   }, []);
@@ -183,6 +192,11 @@ export default function Scheduling() {
     AsyncStorage.setItem("step2Completed", "false");
   };
 
+  const handleEditStep3 = () => {
+    setStep3Completed(false);
+    AsyncStorage.setItem("step3Completed", "false");
+  };
+
   // Handler for auto schedule button click in Step 2
   const handleCreateAutoSchedule = async () => {
     const markStep2Completed = async () => {
@@ -226,6 +240,12 @@ export default function Scheduling() {
     } else {
       await markStep2Completed();
     }
+  };
+
+  // Handler for completing Step 3
+  const handleCompleteStep3 = () => {
+    setStep3Completed(true);
+    AsyncStorage.setItem("step3Completed", "true");
   };
 
   // Calculate progress ratio
@@ -337,9 +357,25 @@ export default function Scheduling() {
         )}
       </View>
 
+      {/* Step 3 with edit and complete functionality */}
       <View ref={step3Ref} style={{ marginBottom: 40 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 3</Text>
-        <AssignedVolunteers /> {/* Include the AssignedVolunteers component */}
+        <Text style={{ fontSize: 24, marginBottom: 10 }}>
+          {step3Completed ? "Step 3 Completed" : "Step 3"}
+        </Text>
+        {!step3Completed ? (
+          <View>
+            <AssignedVolunteers onSave={handleCompleteStep3} />{" "}
+            {/* Include the AssignedVolunteers component with onSave prop */}
+          </View>
+        ) : (
+          <View style={{ marginBottom: 40 }}>
+            <TouchableOpacity onPress={handleEditStep3}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Edit Step 3
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

@@ -1,15 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { getDatabase, ref, get } from "firebase/database";
+import {
+  View,
+  Text,
+  Button,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
+import { getDatabase, ref, get, set } from "firebase/database";
 
 type VolunteerAssignments = Record<
   string,
-  Record<string, "red" | "yellow" | "green">
+  Record<string, "white" | "yellow" | "green">
 >;
 
-const AssignedVolunteers: React.FC = () => {
+interface AssignedVolunteersProps {
+  onSave: () => void;
+}
+
+const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
   const [assignments, setAssignments] = useState<VolunteerAssignments>({});
+  const [originalAssignments, setOriginalAssignments] =
+    useState<VolunteerAssignments>({});
   const [dates, setDates] = useState<string[]>([]);
   const [volunteers, setVolunteers] = useState<string[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -26,8 +42,14 @@ const AssignedVolunteers: React.FC = () => {
 
       for (const date in fetchedData) {
         newDates.push(date);
-        const assignedVolunteers = fetchedData[date].volunteers || [];
-        const availableVolunteers = fetchedData[date].availableVolunteers || [];
+        const assignedVolunteers = Array.isArray(fetchedData[date].volunteers)
+          ? fetchedData[date].volunteers
+          : [];
+        const availableVolunteers = Array.isArray(
+          fetchedData[date].availableVolunteers
+        )
+          ? fetchedData[date].availableVolunteers
+          : [];
         for (const volunteer of availableVolunteers) {
           newVolunteers.add(volunteer);
           if (!newAssignments[volunteer]) {
@@ -45,12 +67,13 @@ const AssignedVolunteers: React.FC = () => {
             newAssignments[volunteer] = {};
           }
           if (!availableVolunteers.includes(volunteer)) {
-            newAssignments[volunteer][date] = "red";
+            newAssignments[volunteer][date] = "white";
           }
         }
       }
 
       setAssignments(newAssignments);
+      setOriginalAssignments(newAssignments);
       setDates(newDates);
       setVolunteers(Array.from(newVolunteers));
     };
@@ -58,38 +81,146 @@ const AssignedVolunteers: React.FC = () => {
     fetchAssignments();
   }, []);
 
+  const handleCellClick = (volunteer: string, date: string) => {
+    if (!isEditing) return;
+
+    const currentColor = assignments[volunteer][date];
+    const newColor =
+      currentColor === "yellow"
+        ? "green"
+        : currentColor === "green"
+        ? "white"
+        : "yellow";
+
+    const updatedAssignments: VolunteerAssignments = {
+      ...assignments,
+      [volunteer]: {
+        ...assignments[volunteer],
+        [date]: newColor as "white" | "yellow" | "green",
+      },
+    };
+
+    setAssignments(updatedAssignments);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSave = () => {
+    const db = getDatabase();
+    dates.forEach((date) => {
+      const volunteersForDate: string[] = [];
+      const availableVolunteersForDate: string[] = [];
+
+      volunteers.forEach((volunteer) => {
+        if (assignments[volunteer][date] === "green") {
+          volunteersForDate.push(volunteer);
+          availableVolunteersForDate.push(volunteer);
+        } else if (assignments[volunteer][date] === "yellow") {
+          availableVolunteersForDate.push(volunteer);
+        }
+      });
+
+      const volunteerRef = ref(db, `activities/${date}/volunteers`);
+      set(volunteerRef, volunteersForDate);
+
+      const availableVolunteerRef = ref(
+        db,
+        `activities/${date}/availableVolunteers`
+      );
+      set(availableVolunteerRef, availableVolunteersForDate);
+    });
+    setOriginalAssignments(assignments);
+    setHasUnsavedChanges(false);
+    setIsEditing(false);
+    onSave(); // Call the onSave callback
+  };
+
+  const handleReset = () => {
+    setAssignments(originalAssignments);
+    setHasUnsavedChanges(false);
+    setIsEditing(false);
+  };
+
   return (
-    <div>
-      <h1>Volunteer Assignments</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Volunteer</th>
-            {dates.map((date) => (
-              <th key={date}>{date}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {volunteers.map((volunteer) => (
-            <tr key={volunteer}>
-              <td>{volunteer}</td>
+    <ScrollView>
+      <View style={styles.container}>
+        <Text style={styles.title}>Volunteer Assignments</Text>
+        <Button
+          title={isEditing ? "Reset to Original" : "Edit Assignments"}
+          onPress={() => {
+            if (isEditing) {
+              handleReset();
+            } else {
+              setIsEditing(true);
+            }
+          }}
+        />
+        <ScrollView horizontal>
+          <View>
+            <View style={styles.row}>
+              <Text style={styles.headerCell}>Volunteer</Text>
               {dates.map((date) => (
-                <td
-                  key={date}
-                  style={{
-                    backgroundColor: assignments[volunteer]?.[date] || "white",
-                  }}
-                >
-                  {assignments[volunteer]?.[date] || ""}
-                </td>
+                <Text key={date} style={styles.headerCell}>
+                  {date}
+                </Text>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+            </View>
+            {volunteers.map((volunteer) => (
+              <View key={volunteer} style={styles.row}>
+                <Text style={styles.cell}>{volunteer}</Text>
+                {dates.map((date) => (
+                  <TouchableOpacity
+                    key={date}
+                    style={[
+                      styles.cell,
+                      {
+                        backgroundColor:
+                          assignments[volunteer]?.[date] || "white",
+                      },
+                    ]}
+                    onPress={() => handleCellClick(volunteer, date)}
+                  ></TouchableOpacity>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+        <Button
+          title="Save Changes and message to volunteers"
+          onPress={handleSave}
+        />
+      </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerCell: {
+    fontWeight: "bold",
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    flex: 1,
+    textAlign: "center",
+  },
+  cell: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    flex: 1,
+    textAlign: "center",
+  },
+});
 
 export default AssignedVolunteers;
