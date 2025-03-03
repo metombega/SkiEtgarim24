@@ -160,9 +160,7 @@ const AssignedVolunteers: React.FC = () => {
                       },
                     ]}
                     onPress={() => handleCellClick(volunteer, date)}
-                  >
-                    <Text>{assignments[volunteer]?.[date] || ""}</Text>
-                  </TouchableOpacity>
+                  ></TouchableOpacity>
                 ))}
               </View>
             ))}
