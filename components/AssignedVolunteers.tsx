@@ -14,8 +14,14 @@ type VolunteerAssignments = Record<
   Record<string, "white" | "yellow" | "green">
 >;
 
-const AssignedVolunteers: React.FC = () => {
+interface AssignedVolunteersProps {
+  onSave: () => void;
+}
+
+const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
   const [assignments, setAssignments] = useState<VolunteerAssignments>({});
+  const [originalAssignments, setOriginalAssignments] =
+    useState<VolunteerAssignments>({});
   const [dates, setDates] = useState<string[]>([]);
   const [volunteers, setVolunteers] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -67,6 +73,7 @@ const AssignedVolunteers: React.FC = () => {
       }
 
       setAssignments(newAssignments);
+      setOriginalAssignments(newAssignments);
       setDates(newDates);
       setVolunteers(Array.from(newVolunteers));
     };
@@ -121,6 +128,14 @@ const AssignedVolunteers: React.FC = () => {
       );
       set(availableVolunteerRef, availableVolunteersForDate);
     });
+    setOriginalAssignments(assignments);
+    setHasUnsavedChanges(false);
+    setIsEditing(false);
+    onSave(); // Call the onSave callback
+  };
+
+  const handleReset = () => {
+    setAssignments(originalAssignments);
     setHasUnsavedChanges(false);
     setIsEditing(false);
   };
@@ -130,8 +145,14 @@ const AssignedVolunteers: React.FC = () => {
       <View style={styles.container}>
         <Text style={styles.title}>Volunteer Assignments</Text>
         <Button
-          title={isEditing ? "Stop Editing" : "Edit Assignments"}
-          onPress={() => setIsEditing(!isEditing)}
+          title={isEditing ? "Reset to Original" : "Edit Assignments"}
+          onPress={() => {
+            if (isEditing) {
+              handleReset();
+            } else {
+              setIsEditing(true);
+            }
+          }}
         />
         <ScrollView horizontal>
           <View>
@@ -163,7 +184,10 @@ const AssignedVolunteers: React.FC = () => {
             ))}
           </View>
         </ScrollView>
-        <Button title="Save Changes" onPress={handleSave} />
+        <Button
+          title="Save Changes and message to volunteers"
+          onPress={handleSave}
+        />
       </View>
     </ScrollView>
   );
