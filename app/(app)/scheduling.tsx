@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, Alert, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  ScrollView,
+} from "react-native";
 import CustomSchedulingCalendar from "../../components/CustomSchedulingCalendar";
+import AssignedVolunteers from "../../components/AssignedVolunteers"; // Import the component
 import {
   getDatabase,
   ref,
@@ -229,7 +237,7 @@ export default function Scheduling() {
   const buttonColor = `rgb(${red}, ${green}, 0)`;
 
   return (
-    <View style={{ padding: 20 }}>
+    <ScrollView style={{ padding: 20 }}>
       <View
         style={{
           flexDirection: "row",
@@ -331,9 +339,9 @@ export default function Scheduling() {
 
       <View ref={step3Ref} style={{ marginBottom: 40 }}>
         <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 3</Text>
-        <Text>Step 3 Content</Text>
+        <AssignedVolunteers /> {/* Include the AssignedVolunteers component */}
       </View>
-    </View>
+    </ScrollView>
   );
 
   // Helper function to scroll to section
