@@ -364,8 +364,7 @@ export default function Scheduling() {
         </Text>
         {!step3Completed ? (
           <View>
-            <AssignedVolunteers onSave={handleCompleteStep3} />{" "}
-            {/* Include the AssignedVolunteers component with onSave prop */}
+            <AssignedVolunteers onSave={handleCompleteStep3} />
           </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
