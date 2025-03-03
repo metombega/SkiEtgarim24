@@ -11,7 +11,7 @@ import { getDatabase, ref, get, set } from "firebase/database";
 
 type VolunteerAssignments = Record<
   string,
-  Record<string, "red" | "yellow" | "green">
+  Record<string, "white" | "yellow" | "green">
 >;
 
 const AssignedVolunteers: React.FC = () => {
@@ -61,7 +61,7 @@ const AssignedVolunteers: React.FC = () => {
             newAssignments[volunteer] = {};
           }
           if (!availableVolunteers.includes(volunteer)) {
-            newAssignments[volunteer][date] = "red";
+            newAssignments[volunteer][date] = "white";
           }
         }
       }
@@ -82,14 +82,14 @@ const AssignedVolunteers: React.FC = () => {
       currentColor === "yellow"
         ? "green"
         : currentColor === "green"
-        ? "red"
+        ? "white"
         : "yellow";
 
     const updatedAssignments: VolunteerAssignments = {
       ...assignments,
       [volunteer]: {
         ...assignments[volunteer],
-        [date]: newColor as "red" | "yellow" | "green",
+        [date]: newColor as "white" | "yellow" | "green",
       },
     };
 
@@ -133,9 +133,6 @@ const AssignedVolunteers: React.FC = () => {
           title={isEditing ? "Stop Editing" : "Edit Assignments"}
           onPress={() => setIsEditing(!isEditing)}
         />
-        {isEditing && hasUnsavedChanges && (
-          <Button title="Save Changes" onPress={handleSave} />
-        )}
         <ScrollView horizontal>
           <View>
             <View style={styles.row}>
