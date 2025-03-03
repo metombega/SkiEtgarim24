@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, Alert, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Platform,
+  ScrollView,
+} from "react-native";
 import CustomSchedulingCalendar from "../../components/CustomSchedulingCalendar";
+import AssignedVolunteers from "../../components/AssignedVolunteers"; // Import the component
 import {
   getDatabase,
   ref,
@@ -13,7 +21,11 @@ import {
 } from "firebase/database";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../config/constants/constants";
-import { autoSchedule } from "../../helpers/AutoSchedule";
+import {
+  autoSchedule,
+  fetchWorkersFromFirebase,
+  fetchDateToWorkersFromFirebase,
+} from "../../helpers/AutoSchedule";
 
 export default function Scheduling() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -172,9 +184,20 @@ export default function Scheduling() {
   };
 
   // Handler for auto schedule button click in Step 2
-  const handleCreateAutoSchedule = () => {
-    const markStep2Completed = () => {
-      autoSchedule();
+  const handleCreateAutoSchedule = async () => {
+    const markStep2Completed = async () => {
+      const workers = await fetchWorkersFromFirebase();
+      const dateToWorkers = await fetchDateToWorkersFromFirebase();
+      const schedule = await autoSchedule(workers, dateToWorkers);
+
+      const db = getDatabase();
+      const promises = Object.keys(schedule).map((date) => {
+        const volunteersRef = ref(db, `activities/${date}/volunteers`);
+        return set(volunteersRef, schedule[date].workers);
+      });
+
+      await Promise.all(promises);
+
       setStep2Completed(true);
       AsyncStorage.setItem("step2Completed", "true");
     };
@@ -185,7 +208,7 @@ export default function Scheduling() {
           "Not all volunteers signed in. Are you sure you want to continue?"
         );
         if (confirmed) {
-          markStep2Completed();
+          await markStep2Completed();
         }
       } else {
         Alert.alert(
@@ -201,7 +224,7 @@ export default function Scheduling() {
         );
       }
     } else {
-      markStep2Completed();
+      await markStep2Completed();
     }
   };
 
@@ -214,7 +237,7 @@ export default function Scheduling() {
   const buttonColor = `rgb(${red}, ${green}, 0)`;
 
   return (
-    <View style={{ padding: 20 }}>
+    <ScrollView style={{ padding: 20 }}>
       <View
         style={{
           flexDirection: "row",
@@ -316,9 +339,9 @@ export default function Scheduling() {
 
       <View ref={step3Ref} style={{ marginBottom: 40 }}>
         <Text style={{ fontSize: 24, marginBottom: 10 }}>Step 3</Text>
-        <Text>Step 3 Content</Text>
+        <AssignedVolunteers /> {/* Include the AssignedVolunteers component */}
       </View>
-    </View>
+    </ScrollView>
   );
 
   // Helper function to scroll to section
