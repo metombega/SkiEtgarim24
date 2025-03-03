@@ -22,7 +22,6 @@ export async function fetchWorkersFromFirebase(): Promise<Record<string, Worker>
             : [];
         firebaseWorkers[uid] = { maxWorkDays, expertises };
     }
-    console.log(firebaseWorkers);
     return firebaseWorkers;
 }
 
@@ -56,8 +55,6 @@ let dateToWorkers: Record<string, string[]> = {};
 Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then(([fetchedWorkers, fetchedDateToWorkers]) => {
     workers = fetchedWorkers;
     dateToWorkers = fetchedDateToWorkers;
-    console.log(workers);
-    console.log(dateToWorkers);
 });
 
 const mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 };
@@ -76,7 +73,6 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
     const sortedActivityDates = Object.keys(dateToWorkers)
         .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
         .sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
-    console.log(sortedActivityDates);
     
     for (const date of sortedActivityDates) {
         schedule[date] = { workers: [], replaceableWorkers: [], expertises: {} };
@@ -88,7 +84,6 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
                 const availableDaysB = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(b)).length;
                 return (availableDaysA / workers[a].maxWorkDays || Infinity) - (availableDaysB / workers[b].maxWorkDays || Infinity);
             });
-        console.log(availableWorkers);
         
         let expertisesToBook = Object.keys(mandatoryExpertises)
             .sort()
@@ -99,7 +94,6 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
         let numOfWorkersBooked = numOfWorkersPerDay;
         
         for (const expertise in expertisesToBook) {
-            console.log(expertise);
             let workersWithExpertise = availableWorkers.filter(worker => workers[worker].expertises.includes(expertise));
             while (expertisesToBook[expertise] > 0) {
                 if (workersWithExpertise.length > 0) {
