@@ -100,15 +100,26 @@ const AssignedVolunteers: React.FC = () => {
   const handleSave = () => {
     const db = getDatabase();
     dates.forEach((date) => {
-      const volunteersForDate = volunteers.reduce((acc, volunteer) => {
-        if (assignments[volunteer][date]) {
-          acc[volunteer] = assignments[volunteer][date];
+      const volunteersForDate: string[] = [];
+      const availableVolunteersForDate: string[] = [];
+
+      volunteers.forEach((volunteer) => {
+        if (assignments[volunteer][date] === "green") {
+          volunteersForDate.push(volunteer);
+          availableVolunteersForDate.push(volunteer);
+        } else if (assignments[volunteer][date] === "yellow") {
+          availableVolunteersForDate.push(volunteer);
         }
-        return acc;
-      }, {} as Record<string, "red" | "yellow" | "green">);
+      });
 
       const volunteerRef = ref(db, `activities/${date}/volunteers`);
       set(volunteerRef, volunteersForDate);
+
+      const availableVolunteerRef = ref(
+        db,
+        `activities/${date}/availableVolunteers`
+      );
+      set(availableVolunteerRef, availableVolunteersForDate);
     });
     setHasUnsavedChanges(false);
     setIsEditing(false);
