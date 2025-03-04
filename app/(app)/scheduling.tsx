@@ -155,12 +155,6 @@ export default function Scheduling() {
     setStep1Completed(true);
     AsyncStorage.setItem("step1Completed", "true");
 
-    // Mark steps 2 and 3 as not completed
-    setStep2Completed(false);
-    AsyncStorage.setItem("step2Completed", "false");
-    setStep3Completed(false);
-    AsyncStorage.setItem("step3Completed", "false");
-
     // Reset all volunteers' signedForNextPeriod flag to false
     try {
       const skiTeamRef = ref(db, "users/ski-team");
@@ -234,10 +228,6 @@ export default function Scheduling() {
 
       setStep2Completed(true);
       AsyncStorage.setItem("step2Completed", "true");
-
-      // Mark step 3 as not completed
-      setStep3Completed(false);
-      AsyncStorage.setItem("step3Completed", "false");
     };
 
     if (signedVolunteers < totalVolunteers) {
@@ -324,11 +314,13 @@ export default function Scheduling() {
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          <TouchableOpacity onPress={handleEditStep1}>
-            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-              Edit Step 1
-            </Text>
-          </TouchableOpacity>
+          {!step2Completed && (
+            <TouchableOpacity onPress={handleEditStep1}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Edit Step 1
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -384,11 +376,15 @@ export default function Scheduling() {
           </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
-            <TouchableOpacity onPress={handleEditStep2}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Edit Step 2
-              </Text>
-            </TouchableOpacity>
+            {!step3Completed && (
+              <TouchableOpacity onPress={handleEditStep2}>
+                <Text
+                  style={{ color: "blue", textDecorationLine: "underline" }}
+                >
+                  Edit Step 2
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
