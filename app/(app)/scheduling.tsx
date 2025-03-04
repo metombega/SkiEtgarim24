@@ -181,7 +181,6 @@ export default function Scheduling() {
     }
   };
 
-  // Function to allow editing step 1
   const handleEditStep1 = () => {
     setStep1Completed(false);
     AsyncStorage.setItem("step1Completed", "false");
@@ -195,6 +194,21 @@ export default function Scheduling() {
   const handleEditStep3 = () => {
     setStep3Completed(false);
     AsyncStorage.setItem("step3Completed", "false");
+  };
+
+  const handleUndoEditStep1 = () => {
+    setStep1Completed(true);
+    AsyncStorage.setItem("step1Completed", "true");
+  };
+
+  const handleUndoEditStep2 = () => {
+    setStep2Completed(true);
+    AsyncStorage.setItem("step2Completed", "true");
+  };
+
+  const handleUndoEditStep3 = () => {
+    setStep3Completed(true);
+    AsyncStorage.setItem("step3Completed", "true");
   };
 
   // Handler for auto schedule button click in Step 2
@@ -289,6 +303,11 @@ export default function Scheduling() {
             onSave={handleSave}
             scheduledDates={scheduledDates}
           />
+          <TouchableOpacity onPress={handleUndoEditStep1}>
+            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+              Undo Edit Step 1
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <View style={{ marginBottom: 40 }}>
@@ -333,19 +352,26 @@ export default function Scheduling() {
           </View>
         )}
         {!step2Completed ? (
-          <TouchableOpacity
-            onPress={handleCreateAutoSchedule}
-            style={{
-              padding: 15,
-              backgroundColor: buttonColor,
-              borderRadius: 5,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "#fff", fontWeight: "bold" }}>
-              Create Auto Schedule
-            </Text>
-          </TouchableOpacity>
+          <View>
+            <TouchableOpacity
+              onPress={handleCreateAutoSchedule}
+              style={{
+                padding: 15,
+                backgroundColor: buttonColor,
+                borderRadius: 5,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                Create Schedule
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleUndoEditStep2}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Undo Edit Step 2
+              </Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
             <TouchableOpacity onPress={handleEditStep2}>
@@ -365,6 +391,11 @@ export default function Scheduling() {
         {!step3Completed ? (
           <View>
             <AssignedVolunteers onSave={handleCompleteStep3} />
+            <TouchableOpacity onPress={handleUndoEditStep3}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Undo Edit Step 3
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
