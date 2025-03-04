@@ -49,6 +49,7 @@ export async function fetchDateToWorkersFromFirebase(): Promise<Record<string, s
 }
 
 type Schedule = {
+    roles: Record<string, string[]>;
     workers: string[];
     replaceableWorkers: string[];
     expertises: Record<string, number>;
@@ -81,7 +82,7 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
         .sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
     
     for (const date of sortedActivityDates) {
-        schedule[date] = { workers: [], replaceableWorkers: [], expertises: {} };
+        schedule[date] = { workers: [], replaceableWorkers: [], expertises: {}, roles: {} };
         let availableWorkers = [...dateToWorkers[date]];
         
         availableWorkers.sort((a, b) => a.localeCompare(b))
@@ -109,8 +110,14 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
                     
                     for (const workerExpertise of workers[worker].expertises) {
                         expertisesToBook[workerExpertise]--;
+                        if (!schedule[date].roles[workerExpertise]) {
+                            schedule[date].roles[workerExpertise] = [];
+                        }
+                        if (expertisesToBook[workerExpertise] >= 0) {
+                            schedule[date].roles[workerExpertise].push(worker);
+                        }
+
                     }
-                    
                     numOfWorkersBooked--;
                     schedule[date].workers.push(worker);
                 } else {

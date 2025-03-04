@@ -22,8 +22,17 @@ const workers = {
 };
 
 (async () => {
-    const schedule = autoSchedule(workers, dateToWorkers);
-    console.log(schedule);
+    const schedule = await autoSchedule(workers, dateToWorkers);
+    console.log("Results:");
+    for (const date in schedule) {
+        console.log(`${date}:`);
+        console.log(`Workers: ${schedule[date].workers.join(',')}`);
+        console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
+        console.log('Roles:');
+        for (const role in schedule[date].roles) {
+            console.log(`${role}: ${schedule[date].roles[role].join(',')}`);
+        }
+    }
 })();
 
 // Output:
