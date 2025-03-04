@@ -29,13 +29,19 @@ export async function fetchDateToWorkersFromFirebase(): Promise<Record<string, s
     const db = getDatabase();
     const activitiesRef = ref(db, "activities");
     const snapshot = await get(activitiesRef);
+    const fetchedData = snapshot.val();
+    const initializedActivities = Object.keys(fetchedData).reduce((acc, date) => {
+        if (fetchedData[date].status === 'initialized') {
+            acc[date] = fetchedData[date];
+        }
+        return acc;
+    }, {} as Record<string, any>);
     if (!snapshot.exists()) {
         throw new Error("No activity data available in Firebase");
     }
-    const fetchedData = snapshot.val();
     const firebaseDateToWorkers: Record<string, string[]> = {};
-    for (const date in fetchedData) {
-        const availableVolunteersDict = fetchedData[date].availableVolunteers || {};
+    for (const date in initializedActivities) {
+        const availableVolunteersDict = initializedActivities[date].availableVolunteers || {};
         const availableVolunteers = Object.values(availableVolunteersDict) as string[];
         firebaseDateToWorkers[date] = availableVolunteers;
     }
