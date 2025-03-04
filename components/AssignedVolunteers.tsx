@@ -128,6 +128,9 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
         `activities/${date}/availableVolunteers`
       );
       set(availableVolunteerRef, availableVolunteersForDate);
+
+      const statusRef = ref(db, `activities/${date}/status`);
+      set(statusRef, "volunteers_assigned");
     });
     setOriginalAssignments(assignments);
     setHasUnsavedChanges(false);
