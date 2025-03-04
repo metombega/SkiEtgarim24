@@ -26,8 +26,11 @@ import {
   fetchWorkersFromFirebase,
   fetchDateToWorkersFromFirebase,
 } from "../../helpers/AutoSchedule";
+import { useRouter } from "expo-router"; // Add this import
+import { Button } from "react-native-paper";
 
 export default function Scheduling() {
+  const router = useRouter(); // Add this line
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [step1Completed, setStep1Completed] = useState(false);
@@ -191,11 +194,6 @@ export default function Scheduling() {
     AsyncStorage.setItem("step2Completed", "false");
   };
 
-  const handleEditStep3 = () => {
-    setStep3Completed(false);
-    AsyncStorage.setItem("step3Completed", "false");
-  };
-
   const handleUndoEditStep1 = () => {
     setStep1Completed(true);
     AsyncStorage.setItem("step1Completed", "true");
@@ -204,11 +202,6 @@ export default function Scheduling() {
   const handleUndoEditStep2 = () => {
     setStep2Completed(true);
     AsyncStorage.setItem("step2Completed", "true");
-  };
-
-  const handleUndoEditStep3 = () => {
-    setStep3Completed(true);
-    AsyncStorage.setItem("step3Completed", "true");
   };
 
   // Handler for auto schedule button click in Step 2
@@ -257,9 +250,43 @@ export default function Scheduling() {
   };
 
   // Handler for completing Step 3
-  const handleCompleteStep3 = () => {
-    setStep3Completed(true);
-    AsyncStorage.setItem("step3Completed", "true");
+  const handleCompleteStep3 = async () => {
+    setStep1Completed(false);
+    setStep2Completed(false);
+    setStep3Completed(false);
+    AsyncStorage.setItem("step1Completed", "false");
+    AsyncStorage.setItem("step2Completed", "false");
+    AsyncStorage.setItem("step3Completed", "false");
+
+    const db = getDatabase();
+    const skiTeamRef = ref(db, "users/ski-team");
+    const snapshot = await firebaseGet(skiTeamRef);
+    if (snapshot.exists()) {
+      const promises: any[] = [];
+      snapshot.forEach((childSnapshot) => {
+        const volunteerId = childSnapshot.key;
+        if (volunteerId) {
+          const volunteerFlagRef = ref(
+            db,
+            "users/ski-team/" + volunteerId + "/signedForNextPeriod"
+          );
+          promises.push(set(volunteerFlagRef, false));
+        }
+      });
+      await Promise.all(promises);
+    }
+
+    if (Platform.OS === "web") {
+      alert("All done. Back to admin page");
+      router.push("/admin");
+    } else {
+      Alert.alert("All done", "Back to admin page", [
+        {
+          text: "OK",
+          onPress: () => router.push("/admin"),
+        },
+      ]);
+    }
   };
 
   // Calculate progress ratio
@@ -339,6 +366,7 @@ export default function Scheduling() {
               style={{
                 height: 20,
                 backgroundColor: "#eee",
+
                 borderRadius: 10,
                 overflow: "hidden",
               }}
@@ -397,20 +425,9 @@ export default function Scheduling() {
         {!step3Completed ? (
           <View>
             <AssignedVolunteers onSave={handleCompleteStep3} />
-            <TouchableOpacity onPress={handleUndoEditStep3}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Undo Edit Step 3
-              </Text>
-            </TouchableOpacity>
           </View>
         ) : (
-          <View style={{ marginBottom: 40 }}>
-            <TouchableOpacity onPress={handleEditStep3}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Edit Step 3
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <View style={{ marginBottom: 40 }} />
         )}
       </View>
     </ScrollView>
