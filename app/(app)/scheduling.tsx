@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import CustomSchedulingCalendar from "../../components/CustomSchedulingCalendar";
-import AssignedVolunteers from "../../components/AssignedVolunteers"; // Import the component
+import AssignedVolunteers from "../../components/AssignedVolunteers";
 import {
   getDatabase,
   ref,
@@ -304,27 +304,6 @@ export default function Scheduling() {
 
   return (
     <ScrollView style={{ padding: 20 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          marginBottom: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: "#ccc",
-          paddingBottom: 10,
-        }}
-      >
-        <TouchableOpacity onPress={() => scrollToSection("step1")}>
-          <Text>Step 1</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => scrollToSection("step2")}>
-          <Text>Step 2</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => scrollToSection("step3")}>
-          <Text>Step 3</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Conditional rendering of Step 1 */}
       {!step1Completed ? (
         <View ref={step1Ref} style={{ marginBottom: 40 }}>
@@ -359,102 +338,90 @@ export default function Scheduling() {
       )}
 
       {/* Step 2 with volunteer progress bar and auto schedule button */}
-
-      <View ref={step2Ref} style={{ marginBottom: 40 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>
-          {step2Completed ? "Step 2 Completed" : "Step 2"}
-        </Text>
-        {!step2Completed && (
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ marginBottom: 5 }}>
-              {signedVolunteers} of {totalVolunteers} volunteers signed in
-            </Text>
-            <View
-              style={{
-                height: 20,
-                backgroundColor: "#eee",
-
-                borderRadius: 10,
-                overflow: "hidden",
-              }}
-            >
+      {step1Completed && (
+        <View ref={step2Ref} style={{ marginBottom: 40 }}>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>
+            {step2Completed ? "Step 2 Completed" : "Step 2"}
+          </Text>
+          {!step2Completed && (
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ marginBottom: 5 }}>
+                {signedVolunteers} of {totalVolunteers} volunteers signed in
+              </Text>
               <View
                 style={{
-                  height: "100%",
-                  width: `${progressRatio * 100}%`,
-                  backgroundColor: Colors.black,
+                  height: 20,
+                  backgroundColor: "#eee",
+                  borderRadius: 10,
+                  overflow: "hidden",
                 }}
-              />
+              >
+                <View
+                  style={{
+                    height: "100%",
+                    width: `${progressRatio * 100}%`,
+                    backgroundColor: Colors.black,
+                  }}
+                />
+              </View>
             </View>
-          </View>
-        )}
-        {!step2Completed ? (
-          <View>
-            <TouchableOpacity
-              onPress={handleCreateAutoSchedule}
-              style={{
-                padding: 15,
-                backgroundColor: buttonColor,
-                borderRadius: 5,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                Create Schedule
-              </Text>
-            </TouchableOpacity>
-            {step2Edited && (
-              <TouchableOpacity onPress={handleUndoEditStep2}>
-                <Text
-                  style={{ color: "blue", textDecorationLine: "underline" }}
-                >
-                  Undo Edit Step 2
+          )}
+          {!step2Completed ? (
+            <View>
+              <TouchableOpacity
+                onPress={handleCreateAutoSchedule}
+                style={{
+                  padding: 15,
+                  backgroundColor: buttonColor,
+                  borderRadius: 5,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                  Create Schedule
                 </Text>
               </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          <View style={{ marginBottom: 40 }}>
-            {!step3Completed && !step2Edited && (
-              <TouchableOpacity onPress={handleEditStep2}>
-                <Text
-                  style={{ color: "blue", textDecorationLine: "underline" }}
-                >
-                  Edit Step 2
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
-      </View>
+              {step2Edited && (
+                <TouchableOpacity onPress={handleUndoEditStep2}>
+                  <Text
+                    style={{ color: "blue", textDecorationLine: "underline" }}
+                  >
+                    Undo Edit Step 2
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <View style={{ marginBottom: 40 }}>
+              {!step3Completed && !step2Edited && (
+                <TouchableOpacity onPress={handleEditStep2}>
+                  <Text
+                    style={{ color: "blue", textDecorationLine: "underline" }}
+                  >
+                    Edit Step 2
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Step 3 with edit and complete functionality */}
-      <View ref={step3Ref} style={{ marginBottom: 40 }}>
-        <Text style={{ fontSize: 24, marginBottom: 10 }}>
-          {step3Completed ? "Step 3 Completed" : "Step 3"}
-        </Text>
-        {!step3Completed ? (
-          <View>
-            <AssignedVolunteers onSave={handleCompleteStep3} />
-          </View>
-        ) : (
-          <View style={{ marginBottom: 40 }} />
-        )}
-      </View>
+      {step2Completed && (
+        <View ref={step3Ref} style={{ marginBottom: 40 }}>
+          <Text style={{ fontSize: 24, marginBottom: 10 }}>
+            {step3Completed ? "Step 3 Completed" : "Step 3"}
+          </Text>
+          {!step3Completed ? (
+            <View>
+              <AssignedVolunteers onSave={handleCompleteStep3} />
+            </View>
+          ) : (
+            <View style={{ marginBottom: 40 }} />
+          )}
+        </View>
+      )}
     </ScrollView>
   );
-
-  // Helper function to scroll to section
-  function scrollToSection(section: "step1" | "step2" | "step3") {
-    let refToScroll;
-    if (section === "step1") {
-      refToScroll = step1Ref?.current;
-    } else if (section === "step2") {
-      refToScroll = step2Ref?.current;
-    } else {
-      refToScroll = step3Ref?.current;
-    }
-    // @ts-ignore
-    refToScroll?.scrollIntoView({ behavior: "smooth" });
-  }
 }
