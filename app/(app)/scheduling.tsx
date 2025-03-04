@@ -38,6 +38,8 @@ export default function Scheduling() {
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
   const [step3Completed, setStep3Completed] = useState(false); // Step 3 completion state
+  const [step1Edited, setStep1Edited] = useState(false);
+  const [step2Edited, setStep2Edited] = useState(false);
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -186,21 +188,25 @@ export default function Scheduling() {
 
   const handleEditStep1 = () => {
     setStep1Completed(false);
+    setStep1Edited(true);
     AsyncStorage.setItem("step1Completed", "false");
   };
 
   const handleEditStep2 = () => {
     setStep2Completed(false);
+    setStep2Edited(true);
     AsyncStorage.setItem("step2Completed", "false");
   };
 
   const handleUndoEditStep1 = () => {
     setStep1Completed(true);
+    setStep1Edited(false);
     AsyncStorage.setItem("step1Completed", "true");
   };
 
   const handleUndoEditStep2 = () => {
     setStep2Completed(true);
+    setStep2Edited(false);
     AsyncStorage.setItem("step2Completed", "true");
   };
 
@@ -330,18 +336,20 @@ export default function Scheduling() {
             onSave={handleSave}
             scheduledDates={scheduledDates}
           />
-          <TouchableOpacity onPress={handleUndoEditStep1}>
-            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-              Undo Edit Step 1
-            </Text>
-          </TouchableOpacity>
+          {step1Edited && (
+            <TouchableOpacity onPress={handleUndoEditStep1}>
+              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                Undo Edit Step 1
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <View style={{ marginBottom: 40 }}>
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          {!step2Completed && (
+          {!step2Completed && !step3Completed && (
             <TouchableOpacity onPress={handleEditStep1}>
               <Text style={{ color: "blue", textDecorationLine: "underline" }}>
                 Edit Step 1
@@ -396,11 +404,15 @@ export default function Scheduling() {
                 Create Schedule
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleUndoEditStep2}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Undo Edit Step 2
-              </Text>
-            </TouchableOpacity>
+            {step2Edited && (
+              <TouchableOpacity onPress={handleUndoEditStep2}>
+                <Text
+                  style={{ color: "blue", textDecorationLine: "underline" }}
+                >
+                  Undo Edit Step 2
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
