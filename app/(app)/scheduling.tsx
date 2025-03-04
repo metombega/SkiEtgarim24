@@ -26,7 +26,7 @@ import {
   fetchWorkersFromFirebase,
   fetchDateToWorkersFromFirebase,
 } from "../../helpers/AutoSchedule";
-import { useRouter } from "expo-router"; // Add this import
+import { useRouter } from "expo-router";
 
 export default function Scheduling() {
   const router = useRouter(); // Add this line
