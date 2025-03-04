@@ -6,16 +6,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  //@ts-ignore
-  CheckBox,
-  //@ts-ignore
-  Picker,
 } from "react-native";
 import { router } from "expo-router";
+import { Checkbox, Provider as PaperProvider } from "react-native-paper";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { Colors } from "../config/constants/constants";
 import { getDatabase, ref, set } from "firebase/database";
+import { Picker } from "@react-native-picker/picker";
+
 import {
   surferAbilitiesTypes,
   twoSkiesAbilitiesTypes,
@@ -44,7 +43,7 @@ export default function Register() {
     const db = getDatabase();
     if (auth.currentUser) {
       if (isSurfer) {
-        const surferRef = ref(db, "users/surfers/" + fullName);
+        const surferRef = ref(db, "users/surfers/" + auth.currentUser.uid);
         await set(surferRef, {
           email,
           fullName,
@@ -74,7 +73,10 @@ export default function Register() {
         for (const abilityType of surferAbilitiesTypes) {
           const abilityRef = ref(
             db,
-            "users/surfers/" + fullName + "/abilities/" + abilityType
+            "users/surfers/" +
+              auth.currentUser.uid +
+              "/abilities/" +
+              abilityType
           );
           await set(abilityRef, {
             type: abilityType,
@@ -87,7 +89,10 @@ export default function Register() {
         for (const abilityType of twoSkiesAbilitiesTypes) {
           const abilityRef = ref(
             db,
-            "users/surfers/" + fullName + "/twoSkiesAbilities/" + abilityType
+            "users/surfers/" +
+              auth.currentUser.uid +
+              "/twoSkiesAbilities/" +
+              abilityType
           );
           await set(abilityRef, {
             type: abilityType,
@@ -100,7 +105,10 @@ export default function Register() {
         for (const abilityType of kenSkiAbilitiesTypes) {
           const abilityRef = ref(
             db,
-            "users/surfers/" + fullName + "/kenSkiAbilities/" + abilityType
+            "users/surfers/" +
+              auth.currentUser.uid +
+              "/kenSkiAbilities/" +
+              abilityType
           );
           await set(abilityRef, {
             type: abilityType,
@@ -110,7 +118,7 @@ export default function Register() {
         }
       }
       if (isTeamMember) {
-        const teamMemberRef = ref(db, "users/ski-team/" + fullName);
+        const teamMemberRef = ref(db, "users/ski-team/" + auth.currentUser.uid);
         await set(teamMemberRef, {
           email,
           fullName,
@@ -135,7 +143,10 @@ export default function Register() {
         for (const abilityType of volunteerAbilitiesTypes) {
           const abilityRef = ref(
             db,
-            "users/ski-team/" + fullName + "/abilities/" + abilityType
+            "users/ski-team/" +
+              auth.currentUser.uid +
+              "/abilities/" +
+              abilityType
           );
           await set(abilityRef, {
             type: abilityType,
@@ -148,7 +159,7 @@ export default function Register() {
           const certificationRef = ref(
             db,
             "users/ski-team/" +
-              fullName +
+              auth.currentUser.uid +
               "/certifications/" +
               certificationType
           );
@@ -262,14 +273,20 @@ export default function Register() {
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isSurfer} onValueChange={setIsSurfer} />
+            <Checkbox.Android
+              status={isSurfer ? "checked" : "unchecked"}
+              onPress={() => setIsSurfer(!isSurfer)}
+            />
             <Text style={styles.checkboxLabel}>הרשם כגולש</Text>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <View style={styles.checkboxContainer}>
-            <CheckBox value={isTeamMember} onValueChange={setIsTeamMember} />
+            <Checkbox.Android
+              status={isTeamMember ? "checked" : "unchecked"}
+              onPress={() => setIsTeamMember(!isTeamMember)}
+            />
             <Text style={styles.checkboxLabel}>הרשם כצוותסקי</Text>
           </View>
         </View>

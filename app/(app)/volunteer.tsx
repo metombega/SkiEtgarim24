@@ -1,18 +1,29 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, Button } from "react-native";
 import CustomVolunteerCalendar from "@/components/CustomVolunteerCalendar";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { router, useRouter } from "expo-router";
 
 export default function Volunteer() {
   const router = useRouter();
   const auth = getAuth();
-  console.log(`User ID: ${auth.currentUser?.email}`);
+  const [user, setUser] = useState<User | null>(auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   return (
     <View style={styles.container}>
       <Text>Activity Calendar</Text>
-      <CustomVolunteerCalendar volunteerId={auth.currentUser?.email || ""} />
+      <CustomVolunteerCalendar volunteerId={user?.uid || ""} />
+      <Button
+        title="sign up for next season"
+        onPress={() => router.push("/volunteerSignToNextSeasonProcess")}
+      />
     </View>
   );
 }

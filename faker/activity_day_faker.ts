@@ -3,71 +3,59 @@ import admin from 'firebase-admin';
 import { getDatabase } from 'firebase-admin/database';
 import { firebaseConfig } from '../app/config/firebase';
 import { ServiceAccount } from 'firebase-admin';
-import { v4 as uuidv4 } from 'uuid';
 
-function getRandomDate(): Date {
-    const startTimestamp: number = new Date(2024, 0, 1).getTime();
-    const endTimestamp: number = new Date(2024, 11, 11).getTime();
-    const randomTimestamp: number = startTimestamp + Math.random() * (endTimestamp - startTimestamp);
-    return new Date(randomTimestamp);
-}
+// Initialize Firebase
+const serviceAccount = require('../serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount as ServiceAccount),
+  databaseURL: firebaseConfig['databaseURL']
+});
 
-export const createRandomActivity = (): Activity => {
-    return {
-        id: uuidv4(), // Generate a unique ID
-        date: getRandomDate().toDateString(),
-        startTime: "08:00",
-        endTime: "12:00",
-        surfer: "surfer",
-        ski_type: "standing",
-        number_of_additional_surfers: 0,
-        number_of_additional_guests: 1,
-        activity_manager: "activity_manager",
-        volunteers: [{ id: "1", username: "volunteer", password: "password", phoneNumber: "1234567890", email: "", fullName: "volunteer", age: 20, hight: 180, sittingSizeMessure: 50, floatingBeltSize: 100, joinYear: 2020, senioretyYears: 5, sex: "M", emergencyContact: { name: "contact", phoneNumber: "1234567890" }, abilities: [{ type: "ability", rank: 1, comments: "" }], certifications: [{ exists: true, type: "certification", comments: "" }] }],
-        start_report: { activity_manager: "activity_manager" },
-        end_report: { activity_manager: "activity_manager" },
-        equipments: [{ subject: "ski", quantity: 1, condition: "Good", remarks: "" }, { subject: "Life Jacket", quantity: 6, condition: "Good", remarks: "" }],
-        boat: { id: 1, name: "boat", type: "boat", engineTime: 100, ongoingTreatment: "treatment", lastTest: new Date(), nextTest: new Date(), malfunctions: [], patrolLeft: 5 },
-    };
+export const createRandomActivity = (availableVolunteers: string[], date: Date): Activity => {
+  return {
+    date: date,
+    status: "initialized",
+    skiType: "",
+    surfer: "",
+    numberOfAdditionalSurfers: 0,
+    numberOfAdditionalGuests: 0,
+    startTime: "09:00",
+    endTime: "12:00",
+    availableVolunteers: availableVolunteers,
+    activityManager: "",
+    volunteers: [],
+  };
 };
 
-async function saveActivity(activity: Activity): Promise<void> {
-    try {
-        const db = getDatabase();
-        const activityRef = db.ref(`/activities/${activity.id}`);
-        await activityRef.set({
-            date: activity.date,
-            startTime: activity.startTime,
-            endTime: activity.endTime,
-            surfer: activity.surfer,
-            ski_type: activity.ski_type,
-            number_of_additional_surfers: activity.number_of_additional_surfers,
-            number_of_additional_guests: activity.number_of_additional_guests,
-            activity_manager: activity.activity_manager,
-            volunteers: activity.volunteers,
-            start_report: activity.start_report,
-            end_report: activity.end_report,
-            equipments: activity.equipments,
-            boat: activity.boat,
-        });
-        console.log('Activity saved successfully');
-    } catch (error) {
-        console.error('Error saving activity:', error);
-    }
-}
-
-export const saveRandomActivity = async (): Promise<void> => {
-    const activity: Activity = createRandomActivity();
-    const serviceAccount = require('../serviceAccountKey.json'); // Ensure this path is correct
-
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount as ServiceAccount),
-        databaseURL: firebaseConfig['databaseURL']
-    });
-
-    await saveActivity(activity);
+const saveActivity = async (activity: Activity): Promise<void> => {
+  try {
+    const db = getDatabase();
+    const formattedDate = activity.date.toISOString().slice(0, 10); // Format date to yyyy-mm-dd
+    const activityRef = db.ref(`/activities/${formattedDate}`);
+    await activityRef.set(activity);
+    console.log('Activity saved successfully');
+  } catch (error) {
+    console.error('Error saving activity:', error);
+  }
 };
+
+const date_to_workers = {
+  '1/1/2025': ['Alice', 'Charlie', 'David', 'Eve', 'Grace', 'Heidi', 'Ivan'],
+  '2/1/2025': ['Alice', 'David', 'Eve', 'Frank', 'Grace', 'Ivan'],
+  '3/1/2025': ['Alice', 'Charlie', 'David', 'Frank', 'Grace', 'Ivan'],
+  '4/1/2025': ['Alice', 'Charlie', 'Frank', 'Grace', 'Ivan', 'David'],
+  '5/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
+  '6/1/2025': ['Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi']
+};
+
+const activities = Object.entries(date_to_workers).map(([date, availableVolunteers]) => ({
+  date: new Date(date),
+  availableVolunteers: availableVolunteers
+}));
 
 (async () => {
-    await saveRandomActivity();
+  for (const activityData of activities) {
+    const activity = createRandomActivity(activityData.availableVolunteers, activityData.date);
+    await saveActivity(activity);
+  }
 })();

@@ -93,7 +93,10 @@ const CustomCalendar: FC<CalendarProps> = ({ onSave }) => {
     <View>
       <Calendar onDayPress={handleDayPress} markedDates={markedDates} />
       <View style={{ marginTop: 20 }}>
-        <Button title="Save" onPress={handleSave} />
+        <Button
+          title="Save and ask volunteers to sign up"
+          onPress={handleSave}
+        />
       </View>
     </View>
   );
