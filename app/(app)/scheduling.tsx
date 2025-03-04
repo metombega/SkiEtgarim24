@@ -349,7 +349,7 @@ export default function Scheduling() {
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          {!step2Completed && !step3Completed && (
+          {!step2Completed && !step3Completed && !step2Edited && (
             <TouchableOpacity onPress={handleEditStep1}>
               <Text style={{ color: "blue", textDecorationLine: "underline" }}>
                 Edit Step 1
@@ -416,7 +416,7 @@ export default function Scheduling() {
           </View>
         ) : (
           <View style={{ marginBottom: 40 }}>
-            {!step3Completed && (
+            {!step3Completed && !step2Edited && (
               <TouchableOpacity onPress={handleEditStep2}>
                 <Text
                   style={{ color: "blue", textDecorationLine: "underline" }}
