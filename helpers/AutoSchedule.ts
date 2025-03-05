@@ -110,11 +110,11 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
                     
                     for (const workerExpertise of workers[worker].expertises) {
                         expertisesToBook[workerExpertise]--;
-                        if (!schedule[date].roles[workerExpertise]) {
-                            schedule[date].roles[workerExpertise] = [];
+                        if (!schedule[date].roles[worker]) {
+                            schedule[date].roles[worker] = [];
                         }
                         if (expertisesToBook[workerExpertise] >= 0) {
-                            schedule[date].roles[workerExpertise].push(worker);
+                            schedule[date].roles[worker].push(workerExpertise);
                         }
 
                     }
