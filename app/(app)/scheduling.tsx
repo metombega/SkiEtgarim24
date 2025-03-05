@@ -219,7 +219,14 @@ export default function Scheduling() {
       const db = getDatabase();
       const promises = Object.keys(schedule).map((date) => {
         const volunteersRef = ref(db, `activities/${date}/volunteers`);
-        return set(volunteersRef, schedule[date].workers);
+        const volunteers = schedule[date].workers.reduce(
+          (acc: any, worker: string) => {
+            acc[worker] = schedule[date].roles[worker] || "";
+            return acc;
+          },
+          {}
+        );
+        return set(volunteersRef, volunteers);
       });
 
       await Promise.all(promises);
