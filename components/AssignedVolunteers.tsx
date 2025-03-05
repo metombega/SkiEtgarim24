@@ -43,8 +43,8 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
       for (const date in fetchedData) {
         if (fetchedData[date].status !== "initialized") continue;
         newDates.push(date);
-        const assignedVolunteers = Array.isArray(fetchedData[date].volunteers)
-          ? fetchedData[date].volunteers
+        const assignedVolunteers = fetchedData[date].volunteers
+          ? Object.keys(fetchedData[date].volunteers)
           : [];
         const availableVolunteers = Array.isArray(
           fetchedData[date].availableVolunteers
