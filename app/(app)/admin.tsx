@@ -5,6 +5,7 @@ import CustomCalendar from "@/components/CustomCalendar";
 import CustomButton from "@/components/CustomButton";
 import { Colors } from "../config/constants/constants";
 import WhatsappButton from "@/components/WhatsappButton";
+import { sendWhatsAppToAll } from "@/helpers/sendWhatsApp";
 //import { sendWhatsAppToAll } from "@/helpers/sendWhatsApp";
 
 export default function Admin() {
@@ -27,7 +28,7 @@ export default function Admin() {
         <WhatsappButton
           title="Send Whatsapp to All"
           message="WhatsApp message sent to all volunteers."
-          //onPress={sendWhatsAppToAll}
+          onPress={sendWhatsAppToAll}
         />
       </View>
       <View style={styles.container}>
