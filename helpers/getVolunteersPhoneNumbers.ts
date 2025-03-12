@@ -6,7 +6,7 @@ export const getVolunteersPhoneNumbers = async () => {
   const dbRef = ref(getDatabase());
   try {
     const snapshot = await get(child(dbRef, "users/ski-team"));
-    console.log("######### snapshot snapshot", snapshot);
+    console.log("################ snapshot: ", snapshot);
     if (snapshot.exists()) {
       snapshot.forEach((childSnapshot) => {
         const data = childSnapshot.val();
