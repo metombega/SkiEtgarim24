@@ -288,6 +288,23 @@ export default function Scheduling() {
       await Promise.all(promises);
     }
 
+    const activitiesRef = ref(db, "activities");
+    const activities_snapshot = await firebaseGet(activitiesRef);
+    if (activities_snapshot.exists()) {
+      const promises: any[] = [];
+      activities_snapshot.forEach((childSnapshot) => {
+        const activityData = childSnapshot.val();
+        if (activityData.status === "initialized") {
+          const activityDayRef = ref(
+            db,
+            "activities/" + childSnapshot.key + "/status"
+          );
+          promises.push(set(activityDayRef, "Volunteers Assigned"));
+        }
+      });
+      await Promise.all(promises);
+    }
+
     if (Platform.OS === "web") {
       alert("All done. Back to admin page");
       router.push("/admin");
