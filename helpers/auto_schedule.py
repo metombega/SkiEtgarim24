@@ -19,36 +19,19 @@ def schedule_workers(workers, date_to_workers, mandatory_experties, num_of_worke
         # for each experty in mandatory_experties, book the first worker that has this experty
         experties_to_book = deepcopy(mandatory_experties)
         num_of_workers_left = num_of_workers_per_day
-        # sort the experties from the rearest experty to the most common
-        # experties_sorted = sorted(experties_to_book, key=lambda experty: sum([1 for worker in available_workers_sorted if experty in workers_experties[worker]]))
         for experty in experties_to_book:
             workers_with_experty = [worker for worker in available_workers_sorted if experty in workers_copy[worker]['experties']]
             for worker in workers_with_experty:
                 if experties_to_book[experty] > 0:
-                    available_workers_sorted.remove(worker)
+                    add_worker_to_schedule(worker, available_workers_sorted, workers_copy, experties_to_book, schedule, date)
                     workers_with_experty.remove(worker)
-                    workers_copy[worker]['max_work_days'] -= 1
-                    # remove all the required experties on this date
-                    for worker_experty in workers_copy[worker]['experties']:
-                        experties_to_book[worker_experty] -= 1
                     num_of_workers_left -= 1
-                    schedule[date]['workers'].append(worker)
-                    # print(worker, date)
             if experties_to_book[experty] > 0: 
                 print(f'no more workers with experty {experty} on date {date}')
-        # count all experties that could not be booked
-        # experties_not_booked = sum([experties_to_book[experty] for experty in experties_to_book if experties_to_book[experty] > 0])
         # book the rest of the workers
-        # todo: take workers with the least experties
         for _ in range(num_of_workers_left):
             if available_workers_sorted:
-                worker = available_workers_sorted.pop(0)
-                workers_copy[worker]['max_work_days'] -= 1
-                # remove all the required experties on this date
-                for worker_experty in workers_copy[worker]['experties']:
-                    experties_to_book[worker_experty] -= 1
-                # print(worker, date)
-                schedule[date]['workers'].append(worker)
+                add_worker_to_schedule(available_workers_sorted[0], available_workers_sorted, workers_copy, experties_to_book, schedule, date)
                 num_of_workers_left -= 1
 
         # remove the date from the availability
@@ -71,18 +54,17 @@ def schedule_workers(workers, date_to_workers, mandatory_experties, num_of_worke
             for experty in schedule[date]['experties']:
                 if schedule[date]['experties'][experty] > 0:
                     replaced = False
-                    workers_with_experty = [worker for worker in workers if experty in workers[worker]['experties'] and worker in date_to_workers[date]]
+                    workers_with_experty = [worker for worker in workers if experty in workers[worker]['experties'] and worker in date_to_workers[date] and worker not in schedule[date]['workers']]
                     for worker in workers_with_experty:
                         if not replaced:
                             for scheduled_date in [date_x for date_x in schedule if worker in schedule[date_x]['workers']]:
                                 workers_to_replace = [worker for worker in schedule[date]['replacble_workers'] if worker not in schedule[scheduled_date]['workers'] and worker in date_to_workers[scheduled_date]]
-                                if worker in schedule[scheduled_date]['replacble_workers'] and workers_to_replace:
+                                if worker in schedule[scheduled_date]['replacble_workers'] and workers_to_replace != []:
                                     replace_workers(worker, scheduled_date, workers_to_replace[0], date, schedule)
                                     replaced = True
                                     break
     for date in schedule:
         print(f"{date}: {schedule[date]['workers']}")
-    print(check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_of_workers_per_day))
     return schedule
 
 def check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_of_workers_per_day):
@@ -113,8 +95,7 @@ def check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_
 
 def replace_workers(worker1, date1, worker2, date2, schedule):
     """ replace worker1 with worker2 in the schedule """
-    # check if the worker1 is in the schedule
-    if worker1 in schedule[date1]['workers'] and worker2 in schedule[date2]['workers']:
+    if worker1 not in schedule[date2]['workers'] and worker2 not in schedule[date1]['workers'] and worker1 in schedule[date1]['replacble_workers'] and worker2 in schedule[date2]['replacble_workers'] and worker1 in schedule[date1]['workers'] and worker2 in schedule[date2]['workers']:
         schedule[date1]['workers'].remove(worker1)
         schedule[date1]['workers'].append(worker2)
         schedule[date2]['workers'].remove(worker2)
@@ -133,8 +114,16 @@ def replace_workers(worker1, date1, worker2, date2, schedule):
             if experty in workers[worker1]['experties']:
                 schedule[date2]['experties'][experty] -= 1
     else:
-        print(f'worker {worker1} is not in the schedule on date {date1} or worker {worker2} is not in the schedule on date {date2}')
+        print(f'A replacement of {worker1} with {worker2} in {date1} and {date2} is not possible')
         
+def add_worker_to_schedule(worker, available_workers_sorted, workers_copy, experties_to_book, schedule, date):
+    available_workers_sorted.remove(worker)
+    workers_copy[worker]['max_work_days'] -= 1
+    # remove all the required experties on this date
+    for worker_experty in workers_copy[worker]['experties']:
+        experties_to_book[worker_experty] -= 1
+    schedule[date]['workers'].append(worker)
+
 if __name__ == '__main__':
     workers = {
         'Alice': {'max_work_days': 5, 'experties': ['a', 'b', 'c']},
@@ -146,7 +135,7 @@ if __name__ == '__main__':
         'Grace': {'max_work_days': 6, 'experties': ['d', 'b']},
         'Heidi': {'max_work_days': 6, 'experties': ['d']},
         'Ivan': {'max_work_days': 2, 'experties': ['a', 'c', 'e']},
-        'John': {'max_work_days': 1, 'experties': []},
+        'John': {'max_work_days': 1, 'experties': ['e']},
         'Karl': {'max_work_days': 1, 'experties': []}
     }
     date_to_workers = {
@@ -158,10 +147,10 @@ if __name__ == '__main__':
         '6/1/2025': ['Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi']
     }
 
-    mandatory_experties = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1} # maybe should change according to the date
+    mandatory_experties = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1}
     num_of_workers_per_day = 5
-    schedule_workers(workers, date_to_workers, mandatory_experties, num_of_workers_per_day)
-
+    schedule = schedule_workers(workers, date_to_workers, mandatory_experties, num_of_workers_per_day)
+    print(check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_of_workers_per_day))
 
     
 # option for changes!
