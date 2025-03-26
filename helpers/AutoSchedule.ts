@@ -64,10 +64,6 @@ Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then
     dateToWorkers = fetchedDateToWorkers;
 });
 
-// const mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 };
-// const mandatoryExpertises: Record<string, number> = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1};
-// const numOfWorkersPerDay = 5;
-
 export async function autoSchedule(
     workersOrigin: Record<string, Worker> = {},
     dateToWorkersOrigin: Record<string, string[]> = {},
@@ -118,13 +114,6 @@ export async function autoSchedule(
                     workers[worker].maxWorkDays--;
                     for (const workerExpertise of workers[worker].expertises) {
                         expertisesToBook[workerExpertise]--;
-                        if (!schedule[date].roles[worker]) {
-                            schedule[date].roles[worker] = [];
-                        }
-                        if (expertisesToBook[workerExpertise] >= 0) {
-                            schedule[date].roles[worker].push(workerExpertise);
-                        }
-
                     }
                     numOfWorkersLeft--;
                     schedule[date].workers.push(worker);
@@ -215,6 +204,28 @@ export async function autoSchedule(
             }
         }
     }
+
+    // add roles
+    for (const date in schedule) {
+        let expertisesToBook: Record<string, number> = Object.keys(mandatoryExpertises).reduce((acc, key) => {
+            acc[key] = mandatoryExpertises[key];
+            return acc;
+        }, {} as Record<string, number>);
+        console.log(expertisesToBook);
+        for (const worker of schedule[date].workers) {
+            console.log(`worker expertises: ${workersOrigin[worker].expertises}`);
+            for (const workerExpertise of workersOrigin[worker].expertises) {
+                expertisesToBook[workerExpertise]--;
+                if (!schedule[date].roles[worker]) {
+                    schedule[date].roles[worker] = [];
+                }
+                if (expertisesToBook[workerExpertise] >= 0) {
+                    schedule[date].roles[worker].push(workerExpertise);
+                }
+            }
+        }
+    }
+    
     for (const date in schedule) {
         console.log(`${date}: ${schedule[date].workers}`);
     }
