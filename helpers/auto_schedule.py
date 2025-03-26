@@ -1,120 +1,166 @@
+from copy import deepcopy
 
-workers = {
-    'Alice': {'max_work_days': 3, 'experties': ['a', 'b', 'c']},
-    'Bob': {'max_work_days': 2, 'experties': ['c', 'b']},
-    'Charlie': {'max_work_days': 3, 'experties': ['a', 'b', 'd']},
-    'David': {'max_work_days': 4, 'experties': ['b', 'c', 'e']},
-    'Eve': {'max_work_days': 4, 'experties': ['a', 'b', 'c', 'd']},
-    'Frank': {'max_work_days': 1, 'experties': ['a', 'b', 'c', 'd']},
-    'Grace': {'max_work_days': 4, 'experties': ['d', 'b']},
-    'Heidi': {'max_work_days': 1, 'experties': ['d']},
-    'Ivan': {'max_work_days': 2, 'experties': ['a', 'c']}
-}
-date_to_workers = {
-    '1/1/2025': ['Alice', 'Charlie', 'David', 'Eve', 'Grace', 'Heidi', 'Ivan'],
-    '2/1/2025': ['Alice', 'David', 'Eve', 'Frank', 'Grace', 'Ivan'],
-    '3/1/2025': ['Alice', 'Charlie', 'David', 'Frank', 'Grace', 'Ivan'],
-    '4/1/2025': ['Alice', 'Charlie', 'Frank', 'Grace', 'Ivan', 'David'],
-    '5/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
-    '6/1/2025': ['Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi']
-}
-
-mandatory_experties = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1} # maybe should change according to the date
-num_of_workers_per_day = 5
-
-def schedual_workers():
+def schedule_workers(workers, date_to_workers, mandatory_experties, num_of_workers_per_day):
     """ 
     sort the dates by the number of workers that can work on this date - we want to take first the dates with the least workers
     sort the workers by the max number of days they can work devide by the number of their available days
     """
-    schedual = {}
+    date_to_workers_copy = deepcopy(date_to_workers)
+    workers_copy = deepcopy(workers)
+    schedule = {}
     # sort the dates by the number of workers that can work on this date
-    sorted_activity_dates = sorted(date_to_workers.keys(), key=lambda date: len(date_to_workers[date]))
+    sorted_activity_dates = sorted(date_to_workers_copy.keys(), key=lambda date: len(date_to_workers_copy[date]))
     for date in sorted_activity_dates:
-        schedual[date] = {'workers': [], 'replacble_workers': []}
+        schedule[date] = {'workers': [], 'replacble_workers': []}
         # filter the workers that can work in this date
-        available_workers = date_to_workers[date]
+        available_workers = [worker for worker in date_to_workers_copy[date] if workers_copy[worker]['max_work_days'] > 0]
         # sort workers by the max work days devided by the number of days they can work. pay attention to devided by zero
-        available_workers_sorted = sorted(available_workers, key=lambda worker: len([date for date in date_to_workers if worker in date]) / workers[worker]['max_work_days'] if workers[worker]['max_work_days'] > 0 else float('inf'))
+        available_workers_sorted = sorted(available_workers, key=lambda worker: len([date for date in date_to_workers_copy if worker in date_to_workers_copy[date]]) / workers_copy[worker]['max_work_days'])
         # for each experty in mandatory_experties, book the first worker that has this experty
-        experties_to_book = mandatory_experties.copy()
-        num_of_workers_booked = num_of_workers_per_day
+        experties_to_book = deepcopy(mandatory_experties)
+        num_of_workers_left = num_of_workers_per_day
         # sort the experties from the rearest experty to the most common
         # experties_sorted = sorted(experties_to_book, key=lambda experty: sum([1 for worker in available_workers_sorted if experty in workers_experties[worker]]))
         for experty in experties_to_book:
-            workers_with_experty = [worker for worker in available_workers_sorted if experty in workers[worker]['experties']]
-            while experties_to_book[experty] > 0:
-                if len(workers_with_experty) > 0:
-                    worker = workers_with_experty[0]
+            workers_with_experty = [worker for worker in available_workers_sorted if experty in workers_copy[worker]['experties']]
+            for worker in workers_with_experty:
+                if experties_to_book[experty] > 0:
                     available_workers_sorted.remove(worker)
                     workers_with_experty.remove(worker)
-                    workers[worker]['max_work_days'] -= 1
+                    workers_copy[worker]['max_work_days'] -= 1
                     # remove all the required experties on this date
-                    for worker_experty in workers[worker]['experties']:
+                    for worker_experty in workers_copy[worker]['experties']:
                         experties_to_book[worker_experty] -= 1
-                    num_of_workers_booked -= 1
-                    schedual[date]['workers'].append(worker)
+                    num_of_workers_left -= 1
+                    schedule[date]['workers'].append(worker)
                     # print(worker, date)
-                else: 
-                    print(f'no more workers with experty {experty} on date {date}')
-                    break
+            if experties_to_book[experty] > 0: 
+                print(f'no more workers with experty {experty} on date {date}')
         # count all experties that could not be booked
-        experties_not_booked = sum([experties_to_book[experty] for experty in experties_to_book if experties_to_book[experty] > 0])
+        # experties_not_booked = sum([experties_to_book[experty] for experty in experties_to_book if experties_to_book[experty] > 0])
         # book the rest of the workers
         # todo: take workers with the least experties
-        while num_of_workers_booked > experties_not_booked:
-            for worker in available_workers_sorted:
-                available_workers_sorted.remove(worker)
-                workers[worker]['max_work_days'] -= 1
+        for _ in range(num_of_workers_left):
+            if available_workers_sorted:
+                worker = available_workers_sorted.pop(0)
+                workers_copy[worker]['max_work_days'] -= 1
                 # remove all the required experties on this date
-                for worker_experty in workers[worker]['experties']:
+                for worker_experty in workers_copy[worker]['experties']:
                     experties_to_book[worker_experty] -= 1
                 # print(worker, date)
-                schedual[date]['workers'].append(worker)
-                num_of_workers_booked -= 1
-                if num_of_workers_booked == experties_not_booked:
-                    break
+                schedule[date]['workers'].append(worker)
+                num_of_workers_left -= 1
 
         # remove the date from the availability
-        date_to_workers.pop(date)
+        date_to_workers_copy.pop(date)
         
         # find all the workers that could be replaced
-        for worker in schedual[date]['workers']:
+        for worker in schedule[date]['workers']:
             is_replacable = True
-            for worker_experty in workers[worker]['experties']:
+            for worker_experty in workers_copy[worker]['experties']:
                 # check if all the worker's experties are booked and have en extra worker with this experty
                 if experties_to_book[worker_experty] >= 0:
                     is_replacable = False
                     break
             if is_replacable:
-                schedual[date]['replacble_workers'].append(worker)
-        schedual[date]['experties'] = experties_to_book
-    for date in schedual:
-        print(f"{date}: {schedual[date]['workers']}")
-    return schedual
+                schedule[date]['replacble_workers'].append(worker)
+        schedule[date]['experties'] = experties_to_book
 
-def replace_workers(worker1, date1, worker2, date2, schedual):
-    """ replace worker1 with worker2 in the schedual """
-    # check if the worker1 is in the schedual
-    if worker1 in schedual[date1]['workers'] and worker2 in schedual[date2]['workers']:
-        schedual[date1]['workers'].remove(worker1)
-        schedual[date2]['workers'].append(worker2)
+        # check if there are workers that can be replaced to complete the missing experties
+        for date in schedule:
+            for experty in schedule[date]['experties']:
+                if schedule[date]['experties'][experty] > 0:
+                    replaced = False
+                    workers_with_experty = [worker for worker in workers if experty in workers[worker]['experties'] and worker in date_to_workers[date]]
+                    for worker in workers_with_experty:
+                        if not replaced:
+                            for scheduled_date in [date_x for date_x in schedule if worker in schedule[date_x]['workers']]:
+                                workers_to_replace = [worker for worker in schedule[date]['replacble_workers'] if worker not in schedule[scheduled_date]['workers'] and worker in date_to_workers[scheduled_date]]
+                                if worker in schedule[scheduled_date]['replacble_workers'] and workers_to_replace:
+                                    replace_workers(worker, scheduled_date, workers_to_replace[0], date, schedule)
+                                    replaced = True
+                                    break
+    for date in schedule:
+        print(f"{date}: {schedule[date]['workers']}")
+    print(check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_of_workers_per_day))
+    return schedule
+
+def check_schedule(schedule, workers, date_to_workers, mandatory_experties, num_of_workers_per_day):
+    """ check if the schedule is valid """
+    issues = []
+    
+    for date in schedule:
+        # check if the number of workers is correct
+        if len(schedule[date]['workers']) != num_of_workers_per_day:
+            issues.append(f'wrong number of workers on date {date}. expected {num_of_workers_per_day}, got {len(schedule[date]["workers"])}')
+        # check if the workers are in the date_to_workers
+        for worker in schedule[date]['workers']:
+            if worker not in date_to_workers[date]:
+                issues.append(f'worker {worker} was not signed to date {date}')
+        # check if the workers have the required experties
+        mandatory_experties_copy = deepcopy(mandatory_experties)
+        for worker in schedule[date]['workers']:
+            for experty in workers[worker]['experties']:
+                mandatory_experties_copy[experty] -= 1
+        for experty in mandatory_experties_copy:
+            if mandatory_experties_copy[experty] > 0:
+                issues.append(f'date {date} does not have the required experty {experty}')
+    # check if the workers have more work days than allowed
+    for worker in workers:
+        if workers[worker]['max_work_days'] < len([date for date in schedule if worker in schedule[date]['workers']]):
+            issues.append(f'worker {worker} has more work days than allowed')
+    return issues
+
+def replace_workers(worker1, date1, worker2, date2, schedule):
+    """ replace worker1 with worker2 in the schedule """
+    # check if the worker1 is in the schedule
+    if worker1 in schedule[date1]['workers'] and worker2 in schedule[date2]['workers']:
+        schedule[date1]['workers'].remove(worker1)
+        schedule[date1]['workers'].append(worker2)
+        schedule[date2]['workers'].remove(worker2)
+        schedule[date2]['workers'].append(worker1)
+        schedule[date1]['replacble_workers'].remove(worker1)
+        schedule[date2]['replacble_workers'].remove(worker2)
         # update the experties
-        for experty in schedual[date1]['experties']:
+        for experty in schedule[date1]['experties']:
             if experty in workers[worker1]['experties']:
-                schedual[date1]['experties'][experty] += 1
+                schedule[date1]['experties'][experty] += 1
             if experty in workers[worker2]['experties']:
-                schedual[date1]['experties'][experty] -= 1
-        for experty in schedual[date2]['experties']:
+                schedule[date1]['experties'][experty] -= 1
+        for experty in schedule[date2]['experties']:
             if experty in workers[worker2]['experties']:
-                schedual[date2]['experties'][experty] += 1
+                schedule[date2]['experties'][experty] += 1
             if experty in workers[worker1]['experties']:
-                schedual[date2]['experties'][experty] -= 1
+                schedule[date2]['experties'][experty] -= 1
     else:
-        print(f'worker {worker1} is not in the schedual on date {date1} or worker {worker2} is not in the schedual on date {date2}')
+        print(f'worker {worker1} is not in the schedule on date {date1} or worker {worker2} is not in the schedule on date {date2}')
         
 if __name__ == '__main__':
-    schedual_workers()
+    workers = {
+        'Alice': {'max_work_days': 5, 'experties': ['a', 'b', 'c']},
+        'Bob': {'max_work_days': 1, 'experties': ['c', 'b']},
+        'Charlie': {'max_work_days': 3, 'experties': ['a', 'b', 'd']},
+        'David': {'max_work_days': 4, 'experties': ['b', 'c', 'e']},
+        'Eve': {'max_work_days': 6, 'experties': ['a', 'b', 'c', 'd']},
+        'Frank': {'max_work_days': 4, 'experties': ['a', 'b', 'c', 'd']},
+        'Grace': {'max_work_days': 6, 'experties': ['d', 'b']},
+        'Heidi': {'max_work_days': 6, 'experties': ['d']},
+        'Ivan': {'max_work_days': 2, 'experties': ['a', 'c', 'e']},
+        'John': {'max_work_days': 1, 'experties': []},
+        'Karl': {'max_work_days': 1, 'experties': []}
+    }
+    date_to_workers = {
+        '1/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Grace', 'Ivan'],
+        '2/1/2025': ['Alice', 'Bob', 'David', 'Eve', 'Frank', 'Grace', 'Ivan'],
+        '3/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Frank', 'Grace', 'John'],
+        '4/1/2025': ['Alice', 'Bob', 'Charlie', 'Frank', 'Grace', 'David', 'Karl'],
+        '5/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
+        '6/1/2025': ['Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi']
+    }
+
+    mandatory_experties = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1} # maybe should change according to the date
+    num_of_workers_per_day = 5
+    schedule_workers(workers, date_to_workers, mandatory_experties, num_of_workers_per_day)
 
 
     

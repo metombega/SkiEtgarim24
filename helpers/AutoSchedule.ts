@@ -67,7 +67,12 @@ Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then
 const mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 };
 const numOfWorkersPerDay = 5;
 
-export async function autoSchedule(workers: Record<string, Worker> = {}, dateToWorkers: Record<string, string[]> = {}): Promise<Record<string, Schedule>> {
+export async function autoSchedule(workersOrigin: Record<string, Worker> = {}, dateToWorkersOrigin: Record<string, string[]> = {}): Promise<Record<string, Schedule>> {
+    for (const date in dateToWorkersOrigin) {
+        dateToWorkers[date] = [...dateToWorkersOrigin[date]];
+    }
+    workers = JSON.parse(JSON.stringify(workersOrigin));
+
     if (Object.keys(workers).length === 0) {
         workers = await fetchWorkersFromFirebase();
     }
@@ -163,4 +168,66 @@ export async function autoSchedule(workers: Record<string, Worker> = {}, dateToW
         console.log(`${date}: ${schedule[date].workers}`);
     }
     return schedule;
+}
+
+export function analyzeSchedule(
+    workers: Record<string, Worker>,
+    dateToWorkers: Record<string, string[]>,
+    schedule: Record<string, Schedule>
+): string[] {
+    const issues: string[] = [];
+    console.log(workers);
+    console.log(dateToWorkers);
+    console.log(schedule);
+    for (const date in schedule) {
+        const daySchedule = schedule[date];
+        const scheduledWorkers = daySchedule.workers;
+
+        // Check if there are not enough workers for the day
+        if (scheduledWorkers.length < numOfWorkersPerDay) {
+            issues.push(`Date ${date}: Not enough workers. Scheduled: ${scheduledWorkers.length}, Required: ${numOfWorkersPerDay}.`);
+        }
+
+        // Check if there are missing expertises for the day
+        const expertiseCount: Record<string, number> = {};
+        for (const workerId of daySchedule.workers) {
+            for (const expertise of workers[workerId].expertises) {
+            expertiseCount[expertise] = (expertiseCount[expertise] || 0) + 1;
+            }
+        }
+
+        for (const expertise in mandatoryExpertises) {
+            const required = mandatoryExpertises[expertise];
+            const available = expertiseCount[expertise] || 0;
+            if (available < required) {
+            issues.push(`Date ${date}: Missing expertise "${expertise}". Required: ${required}, Available: ${available}.`);
+            }
+        }
+
+        // Check if a worker is scheduled for more days than allowed
+        const workerScheduleCount: Record<string, number> = {};
+        for (const date in schedule) {
+            for (const workerId of schedule[date].workers) {
+            workerScheduleCount[workerId] = (workerScheduleCount[workerId] || 0) + 1;
+            }
+        }
+
+        for (const workerId in workerScheduleCount) {
+            const scheduledDays = workerScheduleCount[workerId];
+            const maxDays = workers[workerId]?.maxWorkDays || 0;
+            if (scheduledDays > maxDays) {
+            issues.push(`Worker ${workerId} is scheduled for ${scheduledDays} days, exceeding their allowed maximum of ${maxDays} days.`);
+            }
+        }
+
+        // Check if a worker is scheduled for a day they did not accept
+        for (const workerId of scheduledWorkers) {
+            if (!dateToWorkers[date]?.includes(workerId)) {
+                issues.push(`Worker ${workerId} is scheduled for date ${date}, but they did not accept to work on this day.`);
+            }
+        }
+    }
+    
+    // remove duplicates
+    return issues.filter((issue, index) => issues.indexOf(issue) === index);
 }
