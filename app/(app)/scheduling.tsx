@@ -23,6 +23,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../config/constants/constants";
 import {
   autoSchedule,
+  analyzeSchedule,
   fetchWorkersFromFirebase,
   fetchDateToWorkersFromFirebase,
 } from "../../helpers/AutoSchedule";
@@ -39,6 +40,7 @@ export default function Scheduling() {
   const [step3Completed, setStep3Completed] = useState(false); // Step 3 completion state
   const [step1Edited, setStep1Edited] = useState(false);
   const [step2Edited, setStep2Edited] = useState(false);
+  const [scheduleIssues, setScheduleIssues] = useState<string[]>([]); // State to store schedule issues
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -216,6 +218,10 @@ export default function Scheduling() {
       const dateToWorkers = await fetchDateToWorkersFromFirebase();
       const schedule = await autoSchedule(workers, dateToWorkers);
 
+      // Analyze the schedule for issues
+      const issues = await analyzeSchedule(schedule, workers, dateToWorkers);
+      setScheduleIssues(issues); // Store the issues in state
+
       const db = getDatabase();
       const promises = Object.keys(schedule).map((date) => {
         const volunteersRef = ref(db, `activities/${date}/volunteers`);
@@ -263,6 +269,39 @@ export default function Scheduling() {
 
   // Handler for completing Step 3
   const handleCompleteStep3 = async () => {
+    if (scheduleIssues.length > 0) {
+      const issuesMessage = scheduleIssues.join("\n");
+
+      if (Platform.OS === "web") {
+        const confirmed = window.confirm(
+          `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`
+        );
+        if (!confirmed) {
+          return; // Exit if the user cancels
+        }
+      } else {
+        const userResponse = await new Promise((resolve) => {
+          Alert.alert(
+            "Schedule Issues",
+            `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => resolve(false),
+              },
+              { text: "OK", onPress: () => resolve(true) },
+            ]
+          );
+        });
+
+        if (!userResponse) {
+          return; // Exit if the user cancels
+        }
+      }
+    }
+
+    // Proceed with completing Step 3
     setStep1Completed(false);
     setStep2Completed(false);
     setStep3Completed(false);
@@ -440,6 +479,19 @@ export default function Scheduling() {
           {!step3Completed ? (
             <View>
               <AssignedVolunteers onSave={handleCompleteStep3} />
+              {/* Display schedule issues */}
+              {scheduleIssues.length > 0 && (
+                <View style={{ marginTop: 20 }}>
+                  <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                    Schedule Issues:
+                  </Text>
+                  {scheduleIssues.map((issue, index) => (
+                    <Text key={index} style={{ color: "red", marginTop: 5 }}>
+                      - {issue}
+                    </Text>
+                  ))}
+                </View>
+              )}
             </View>
           ) : (
             <View style={{ marginBottom: 40 }} />

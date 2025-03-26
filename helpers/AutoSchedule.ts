@@ -70,18 +70,19 @@ export async function autoSchedule(
     mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 },
     numOfWorkersPerDay: number = 5
 ): Promise<Record<string, Schedule>> {
+    if (Object.keys(workersOrigin).length === 0) {
+        workersOrigin = await fetchWorkersFromFirebase();
+    }
+    if (Object.keys(dateToWorkersOrigin).length === 0) {
+        dateToWorkersOrigin = await fetchDateToWorkersFromFirebase();
+    }
+
     for (const date in dateToWorkersOrigin) {
         dateToWorkers[date] = [...dateToWorkersOrigin[date]];
     }
+
     workers = JSON.parse(JSON.stringify(workersOrigin));
-
-    if (Object.keys(workers).length === 0) {
-        workers = await fetchWorkersFromFirebase();
-    }
-    if (Object.keys(dateToWorkers).length === 0) {
-        dateToWorkers = await fetchDateToWorkersFromFirebase();
-    }
-
+    
     const schedule: Record<string, Schedule> = {};
     
     const sortedActivityDates = Object.keys(dateToWorkers)
@@ -211,9 +212,7 @@ export async function autoSchedule(
             acc[key] = mandatoryExpertises[key];
             return acc;
         }, {} as Record<string, number>);
-        console.log(expertisesToBook);
         for (const worker of schedule[date].workers) {
-            console.log(`worker expertises: ${workersOrigin[worker].expertises}`);
             for (const workerExpertise of workersOrigin[worker].expertises) {
                 expertisesToBook[workerExpertise]--;
                 if (!schedule[date].roles[worker]) {
@@ -232,13 +231,19 @@ export async function autoSchedule(
     return schedule;
 }
 
-export function analyzeSchedule(
-    workers: Record<string, Worker>,
-    dateToWorkers: Record<string, string[]>,
+export async function analyzeSchedule(
     schedule: Record<string, Schedule>,
+    workers: Record<string, Worker> = {},
+    dateToWorkers: Record<string, string[]> = {},
     mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 },
     numOfWorkersPerDay: number = 5
-): string[] {
+): Promise<string[]> {
+    if (Object.keys(workers).length === 0) {
+        workers = await fetchWorkersFromFirebase(); // Ensure this is inside an async function
+    }
+    if (Object.keys(dateToWorkers).length === 0) {
+        dateToWorkers = await fetchDateToWorkersFromFirebase(); // Ensure this is inside an async function
+    }
     const issues: string[] = [];
     for (const date in schedule) {
         const daySchedule = schedule[date];
@@ -285,7 +290,7 @@ export function analyzeSchedule(
         }
     }
 
-    return issues
+    return issues;
 }
 
 export function replaceWorkers(

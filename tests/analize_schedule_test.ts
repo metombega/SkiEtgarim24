@@ -23,7 +23,7 @@ const workers = {
 
 (async () => {
     const schedule = await autoSchedule(workers, dateToWorkers);
-    const issues = analyzeSchedule(workers, dateToWorkers, schedule);
+    const issues = analyzeSchedule(schedule, workers, dateToWorkers);
     console.log("Results:");
     for (const date in schedule) {
         console.log(`${date}: ${schedule[date].workers.join(',')}`);
