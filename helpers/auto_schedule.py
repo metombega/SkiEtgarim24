@@ -49,20 +49,20 @@ def schedule_workers(workers, date_to_workers, mandatory_experties, num_of_worke
                 schedule[date]['replacble_workers'].append(worker)
         schedule[date]['experties'] = experties_to_book
 
-        # check if there are workers that can be replaced to complete the missing experties
-        for date in schedule:
-            for experty in schedule[date]['experties']:
-                if schedule[date]['experties'][experty] > 0:
-                    replaced = False
-                    workers_with_experty = [worker for worker in workers if experty in workers[worker]['experties'] and worker in date_to_workers[date] and worker not in schedule[date]['workers']]
-                    for worker in workers_with_experty:
-                        if not replaced:
-                            for scheduled_date in [date_x for date_x in schedule if worker in schedule[date_x]['workers']]:
-                                workers_to_replace = [worker for worker in schedule[date]['replacble_workers'] if worker not in schedule[scheduled_date]['workers'] and worker in date_to_workers[scheduled_date]]
-                                if worker in schedule[scheduled_date]['replacble_workers'] and workers_to_replace != []:
-                                    replace_workers(worker, scheduled_date, workers_to_replace[0], date, schedule)
-                                    replaced = True
-                                    break
+    # check if there are workers that can be replaced to complete the missing experties
+    for date in schedule:
+        for experty in schedule[date]['experties']:
+            if schedule[date]['experties'][experty] > 0:
+                replaced = False
+                workers_with_experty = [worker for worker in workers if experty in workers[worker]['experties'] and worker in date_to_workers[date] and worker not in schedule[date]['workers']]
+                for worker in workers_with_experty:
+                    if not replaced:
+                        for scheduled_date in [date_x for date_x in schedule if worker in schedule[date_x]['workers']]:
+                            workers_to_replace = [worker for worker in schedule[date]['replacble_workers'] if worker not in schedule[scheduled_date]['workers'] and worker in date_to_workers[scheduled_date]]
+                            if worker in schedule[scheduled_date]['replacble_workers'] and workers_to_replace != []:
+                                replace_workers(worker, scheduled_date, workers_to_replace[0], date, schedule)
+                                replaced = True
+                                break
     for date in schedule:
         print(f"{date}: {schedule[date]['workers']}")
     return schedule
@@ -136,13 +136,13 @@ if __name__ == '__main__':
         'Heidi': {'max_work_days': 6, 'experties': ['d']},
         'Ivan': {'max_work_days': 2, 'experties': ['a', 'c', 'e']},
         'John': {'max_work_days': 1, 'experties': ['e']},
-        'Karl': {'max_work_days': 1, 'experties': []}
+        'Karl': {'max_work_days': 0, 'experties': []}
     }
     date_to_workers = {
         '1/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Grace', 'Ivan'],
         '2/1/2025': ['Alice', 'Bob', 'David', 'Eve', 'Frank', 'Grace', 'Ivan'],
         '3/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Frank', 'Grace', 'John'],
-        '4/1/2025': ['Alice', 'Bob', 'Charlie', 'Frank', 'Grace', 'David', 'Karl'],
+        '4/1/2025': ['Alice', 'Bob', 'Charlie', 'Frank', 'Grace', 'David'],
         '5/1/2025': ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi'],
         '6/1/2025': ['Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Heidi']
     }
@@ -184,9 +184,9 @@ if __name__ == '__main__':
 # : 
 # Object
 
-# 2/1/2025: ['Alice', 'David', 'Eve', 'Grace', 'Frank']
-# 3/1/2025: ['Alice', 'Charlie', 'David', 'Grace', 'Frank']
-# 4/1/2025: ['Alice', 'Charlie', 'David', 'Grace', 'Frank']
-# 1/1/2025: ['Charlie', 'David', 'Eve', 'Heidi', 'Alice']
-# 6/1/2025: ['Eve', 'Bob', 'David', 'Grace', 'Frank']
-# 5/1/2025: ['Eve', 'Bob', 'David', 'Alice', 'Frank']
+# 4/1/2025: ['Alice', 'Grace', 'David', 'Frank', 'Charlie']
+# 1/1/2025: ['Eve', 'Alice', 'Ivan', 'Grace', 'Bob']
+# 2/1/2025: ['Eve', 'Alice', 'Ivan', 'Grace', 'Frank']
+# 3/1/2025: ['Alice', 'Grace', 'John', 'Charlie', 'David']
+# 6/1/2025: ['Eve', 'Frank', 'David', 'Heidi', 'Grace']
+# 5/1/2025: ['Eve', 'Alice', 'Heidi', 'Charlie', 'David']

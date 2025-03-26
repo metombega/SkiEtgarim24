@@ -30,3 +30,11 @@ const workers = {
     }
     console.log("Schedule Issues:", issues);
 })();
+
+// expecting issues: [
+//     'Date 1/1/2025 does not have the required expertise "driver".',
+//     'Wrong number of workers on date 6/1/2025. Expected: 5, Got: 2.',
+//     'Date 6/1/2025 does not have the required expertise "driver".',
+//     'Wrong number of workers on date 5/1/2025. Expected: 5, Got: 2.',
+//     'Date 5/1/2025 does not have the required expertise "driver".'
+//   ]
