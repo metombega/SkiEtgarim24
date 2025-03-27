@@ -30,14 +30,13 @@ import {
 import { useRouter } from "expo-router";
 
 export default function Scheduling() {
-  const router = useRouter(); // Add this line
+  const router = useRouter();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [step1Completed, setStep1Completed] = useState(false);
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
-  const [step1Edited, setStep1Edited] = useState(false);
   const [scheduleIssues, setScheduleIssues] = useState<string[]>([]); // State to store schedule issues
   const [scheduleCreated, setScheduleCreated] = useState(false); // New state to track if the schedule is created
 
@@ -176,18 +175,6 @@ export default function Scheduling() {
         error
       );
     }
-  };
-
-  const handleEditStep1 = () => {
-    setStep1Completed(false);
-    setStep1Edited(true);
-    AsyncStorage.setItem("step1Completed", "false");
-  };
-
-  const handleUndoEditStep1 = () => {
-    setStep1Completed(true);
-    setStep1Edited(false);
-    AsyncStorage.setItem("step1Completed", "true");
   };
 
   // Handler for auto schedule button click in Step 2
@@ -357,26 +344,12 @@ export default function Scheduling() {
             onSave={handleSave}
             scheduledDates={scheduledDates}
           />
-          {step1Edited && (
-            <TouchableOpacity onPress={handleUndoEditStep1}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Undo Edit Step 1
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       ) : (
         <View style={{ marginBottom: 40 }}>
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          {!step2Completed && (
-            <TouchableOpacity onPress={handleEditStep1}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Edit Step 1
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
 
