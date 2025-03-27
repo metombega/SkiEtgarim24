@@ -41,6 +41,7 @@ export default function Scheduling() {
   const [step1Edited, setStep1Edited] = useState(false);
   const [step2Edited, setStep2Edited] = useState(false);
   const [scheduleIssues, setScheduleIssues] = useState<string[]>([]); // State to store schedule issues
+  const [scheduleCreated, setScheduleCreated] = useState(false); // New state to track if the schedule is created
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -238,6 +239,7 @@ export default function Scheduling() {
       await Promise.all(promises);
 
       setStep2Completed(true);
+      setScheduleCreated(true); // Mark the schedule as created
       AsyncStorage.setItem("step2Completed", "true");
     };
 
@@ -429,54 +431,21 @@ export default function Scheduling() {
               </View>
             </View>
           )}
-          {!step2Completed ? (
-            <View>
-              <TouchableOpacity
-                onPress={handleCreateAutoSchedule}
-                style={{
-                  padding: 15,
-                  backgroundColor: buttonColor,
-                  borderRadius: 5,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                  Create Schedule
-                </Text>
-              </TouchableOpacity>
-              {step2Edited && (
-                <TouchableOpacity onPress={handleUndoEditStep2}>
-                  <Text
-                    style={{ color: "blue", textDecorationLine: "underline" }}
-                  >
-                    Undo Edit Step 2
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+          {!scheduleCreated ? (
+            <TouchableOpacity
+              onPress={handleCreateAutoSchedule}
+              style={{
+                padding: 15,
+                backgroundColor: buttonColor,
+                borderRadius: 5,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                Create Schedule
+              </Text>
+            </TouchableOpacity>
           ) : (
-            <View style={{ marginBottom: 40 }}>
-              {!step3Completed && !step2Edited && (
-                <TouchableOpacity onPress={handleEditStep2}>
-                  <Text
-                    style={{ color: "blue", textDecorationLine: "underline" }}
-                  >
-                    Edit Step 2
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Step 3 with edit and complete functionality */}
-      {step2Completed && (
-        <View ref={step3Ref} style={{ marginBottom: 40 }}>
-          <Text style={{ fontSize: 24, marginBottom: 10 }}>
-            {step3Completed ? "Step 3 Completed" : "Step 3"}
-          </Text>
-          {!step3Completed ? (
             <View>
               <AssignedVolunteers onSave={handleCompleteStep3} />
               {/* Display schedule issues */}
@@ -493,8 +462,6 @@ export default function Scheduling() {
                 </View>
               )}
             </View>
-          ) : (
-            <View style={{ marginBottom: 40 }} />
           )}
         </View>
       )}
