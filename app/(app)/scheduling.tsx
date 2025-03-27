@@ -37,9 +37,7 @@ export default function Scheduling() {
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
-  const [step3Completed, setStep3Completed] = useState(false); // Step 3 completion state
   const [step1Edited, setStep1Edited] = useState(false);
-  const [step2Edited, setStep2Edited] = useState(false);
   const [scheduleIssues, setScheduleIssues] = useState<string[]>([]); // State to store schedule issues
   const [scheduleCreated, setScheduleCreated] = useState(false); // New state to track if the schedule is created
 
@@ -61,14 +59,6 @@ export default function Scheduling() {
     AsyncStorage.getItem("step2Completed").then((value) => {
       if (value === "true") {
         setStep2Completed(true);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    AsyncStorage.getItem("step3Completed").then((value) => {
-      if (value === "true") {
-        setStep3Completed(true);
       }
     });
   }, []);
@@ -194,22 +184,10 @@ export default function Scheduling() {
     AsyncStorage.setItem("step1Completed", "false");
   };
 
-  const handleEditStep2 = () => {
-    setStep2Completed(false);
-    setStep2Edited(true);
-    AsyncStorage.setItem("step2Completed", "false");
-  };
-
   const handleUndoEditStep1 = () => {
     setStep1Completed(true);
     setStep1Edited(false);
     AsyncStorage.setItem("step1Completed", "true");
-  };
-
-  const handleUndoEditStep2 = () => {
-    setStep2Completed(true);
-    setStep2Edited(false);
-    AsyncStorage.setItem("step2Completed", "true");
   };
 
   // Handler for auto schedule button click in Step 2
@@ -218,6 +196,8 @@ export default function Scheduling() {
       const workers = await fetchWorkersFromFirebase();
       const dateToWorkers = await fetchDateToWorkersFromFirebase();
       const schedule = await autoSchedule(workers, dateToWorkers);
+
+      console.log("Generated Schedule:", schedule); // Debugging log
 
       // Analyze the schedule for issues
       const issues = await analyzeSchedule(schedule, workers, dateToWorkers);
@@ -270,7 +250,7 @@ export default function Scheduling() {
   };
 
   // Handler for completing Step 3
-  const handleCompleteStep3 = async () => {
+  const handleCompleteStep2 = async () => {
     if (scheduleIssues.length > 0) {
       const issuesMessage = scheduleIssues.join("\n");
 
@@ -303,13 +283,11 @@ export default function Scheduling() {
       }
     }
 
-    // Proceed with completing Step 3
+    // Proceed with completing Step 2
     setStep1Completed(false);
     setStep2Completed(false);
-    setStep3Completed(false);
     AsyncStorage.setItem("step1Completed", "false");
     AsyncStorage.setItem("step2Completed", "false");
-    AsyncStorage.setItem("step3Completed", "false");
 
     const db = getDatabase();
     const skiTeamRef = ref(db, "users/ski-team");
@@ -392,7 +370,7 @@ export default function Scheduling() {
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          {!step2Completed && !step3Completed && !step2Edited && (
+          {!step2Completed && (
             <TouchableOpacity onPress={handleEditStep1}>
               <Text style={{ color: "blue", textDecorationLine: "underline" }}>
                 Edit Step 1
@@ -447,7 +425,7 @@ export default function Scheduling() {
             </TouchableOpacity>
           ) : (
             <View>
-              <AssignedVolunteers onSave={handleCompleteStep3} />
+              <AssignedVolunteers onSave={handleCompleteStep2} />
               {/* Display schedule issues */}
               {scheduleIssues.length > 0 && (
                 <View style={{ marginTop: 20 }}>
