@@ -43,14 +43,20 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
       for (const date in fetchedData) {
         if (fetchedData[date].status !== "initialized") continue;
         newDates.push(date);
+
+        // Fetch assigned volunteers
         const assignedVolunteers = fetchedData[date].volunteers
-          ? Object.keys(fetchedData[date].volunteers)
+          ? (Object.values(fetchedData[date].volunteers) as string[])
           : [];
+
+        // Fetch available volunteers
         const availableVolunteers = Array.isArray(
           fetchedData[date].availableVolunteers
         )
-          ? fetchedData[date].availableVolunteers
+          ? (fetchedData[date].availableVolunteers as string[])
           : [];
+
+        // Process volunteers
         for (const volunteer of availableVolunteers) {
           newVolunteers.add(volunteer);
           if (!newAssignments[volunteer]) {
@@ -59,16 +65,17 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
           newAssignments[volunteer][date] = assignedVolunteers.includes(
             volunteer
           )
-            ? "green"
-            : "yellow";
+            ? "green" // Mark as green if assigned
+            : "yellow"; // Mark as yellow if only available
         }
+
         for (const volunteer of assignedVolunteers) {
           newVolunteers.add(volunteer);
           if (!newAssignments[volunteer]) {
             newAssignments[volunteer] = {};
           }
           if (!availableVolunteers.includes(volunteer)) {
-            newAssignments[volunteer][date] = "white";
+            newAssignments[volunteer][date] = "green";
           }
         }
       }

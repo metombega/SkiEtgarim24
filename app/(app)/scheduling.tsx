@@ -191,16 +191,14 @@ export default function Scheduling() {
       setScheduleIssues(issues); // Store the issues in state
 
       const db = getDatabase();
-      const promises = Object.keys(schedule).map((date) => {
+      const promises = Object.keys(schedule).flatMap((date) => {
         const volunteersRef = ref(db, `activities/${date}/volunteers`);
-        const volunteers = schedule[date].workers.reduce(
-          (acc: any, worker: string) => {
-            acc[worker] = schedule[date].roles[worker] || "";
-            return acc;
-          },
-          {}
-        );
-        return set(volunteersRef, volunteers);
+        const rolesRef = ref(db, `activities/${date}/roles`);
+
+        const volunteers = schedule[date].workers;
+        const roles = schedule[date].roles;
+
+        return [set(volunteersRef, volunteers), set(rolesRef, roles)];
       });
 
       await Promise.all(promises);
