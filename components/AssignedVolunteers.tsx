@@ -41,6 +41,7 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [issues, setIssues] = useState<string[]>([]); // State to store schedule issues
+  const [scheduleState, setSchedule] = useState(schedule);
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -138,6 +139,24 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
 
     setAssignments(updatedAssignments);
     setHasUnsavedChanges(true);
+
+    // Update the schedule dynamically
+    const updatedSchedule = { ...scheduleState };
+    if (newColor === "green") {
+      // Add volunteer to workers list
+      if (!updatedSchedule[date].workers.includes(volunteer)) {
+        updatedSchedule[date].workers.push(volunteer);
+      }
+    } else {
+      // Remove volunteer from workers list
+      updatedSchedule[date].workers = updatedSchedule[date].workers.filter(
+        (worker) => worker !== volunteer
+      );
+    }
+    setSchedule(updatedSchedule);
+
+    // Recalculate issues
+    analyzeSchedule(updatedSchedule).then((newIssues) => setIssues(newIssues));
   };
 
   const handleSave = async () => {
@@ -209,6 +228,18 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
     setAssignments(originalAssignments);
     setHasUnsavedChanges(false);
     setIsEditing(false);
+
+    // Reset the schedule to match the original assignments
+    const resetSchedule = { ...scheduleState };
+    dates.forEach((date) => {
+      resetSchedule[date].workers = volunteers.filter(
+        (volunteer) => originalAssignments[volunteer][date] === "green"
+      );
+    });
+    setSchedule(resetSchedule);
+
+    // Recalculate issues
+    analyzeSchedule(resetSchedule).then((newIssues) => setIssues(newIssues));
   };
 
   return (
