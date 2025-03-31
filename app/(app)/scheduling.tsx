@@ -23,22 +23,22 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../config/constants/constants";
 import {
   autoSchedule,
+  analyzeSchedule,
   fetchWorkersFromFirebase,
   fetchDateToWorkersFromFirebase,
 } from "../../helpers/AutoSchedule";
 import { useRouter } from "expo-router";
 
 export default function Scheduling() {
-  const router = useRouter(); // Add this line
+  const router = useRouter();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [scheduledDates, setScheduledDates] = useState<string[]>([]);
   const [step1Completed, setStep1Completed] = useState(false);
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
-  const [step3Completed, setStep3Completed] = useState(false); // Step 3 completion state
-  const [step1Edited, setStep1Edited] = useState(false);
-  const [step2Edited, setStep2Edited] = useState(false);
+  const [scheduleCreated, setScheduleCreated] = useState(false); // New state to track if the schedule is created
+  const [schedule, setSchedule] = useState<Record<string, any>>({}); // State to store the schedule
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -58,14 +58,6 @@ export default function Scheduling() {
     AsyncStorage.getItem("step2Completed").then((value) => {
       if (value === "true") {
         setStep2Completed(true);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    AsyncStorage.getItem("step3Completed").then((value) => {
-      if (value === "true") {
-        setStep3Completed(true);
       }
     });
   }, []);
@@ -185,53 +177,33 @@ export default function Scheduling() {
     }
   };
 
-  const handleEditStep1 = () => {
-    setStep1Completed(false);
-    setStep1Edited(true);
-    AsyncStorage.setItem("step1Completed", "false");
-  };
-
-  const handleEditStep2 = () => {
-    setStep2Completed(false);
-    setStep2Edited(true);
-    AsyncStorage.setItem("step2Completed", "false");
-  };
-
-  const handleUndoEditStep1 = () => {
-    setStep1Completed(true);
-    setStep1Edited(false);
-    AsyncStorage.setItem("step1Completed", "true");
-  };
-
-  const handleUndoEditStep2 = () => {
-    setStep2Completed(true);
-    setStep2Edited(false);
-    AsyncStorage.setItem("step2Completed", "true");
-  };
-
   // Handler for auto schedule button click in Step 2
   const handleCreateAutoSchedule = async () => {
     const markStep2Completed = async () => {
       const workers = await fetchWorkersFromFirebase();
       const dateToWorkers = await fetchDateToWorkersFromFirebase();
-      const schedule = await autoSchedule(workers, dateToWorkers);
+      const generatedSchedule = await autoSchedule(workers, dateToWorkers);
+
+      console.log("Generated Schedule:", generatedSchedule); // Debugging log
+
+      // Update the schedule state
+      setSchedule(generatedSchedule);
 
       const db = getDatabase();
-      const promises = Object.keys(schedule).map((date) => {
+      const promises = Object.keys(generatedSchedule).flatMap((date) => {
         const volunteersRef = ref(db, `activities/${date}/volunteers`);
-        const volunteers = schedule[date].workers.reduce(
-          (acc: any, worker: string) => {
-            acc[worker] = schedule[date].roles[worker] || "";
-            return acc;
-          },
-          {}
-        );
-        return set(volunteersRef, volunteers);
+        const rolesRef = ref(db, `activities/${date}/roles`);
+
+        const volunteers = generatedSchedule[date].workers;
+        const roles = generatedSchedule[date].roles;
+
+        return [set(volunteersRef, volunteers), set(rolesRef, roles)];
       });
 
       await Promise.all(promises);
 
       setStep2Completed(true);
+      setScheduleCreated(true); // Mark the schedule as created
       AsyncStorage.setItem("step2Completed", "true");
     };
 
@@ -262,31 +234,11 @@ export default function Scheduling() {
   };
 
   // Handler for completing Step 3
-  const handleCompleteStep3 = async () => {
+  const handleCompleteStep2 = async () => {
     setStep1Completed(false);
     setStep2Completed(false);
-    setStep3Completed(false);
     AsyncStorage.setItem("step1Completed", "false");
     AsyncStorage.setItem("step2Completed", "false");
-    AsyncStorage.setItem("step3Completed", "false");
-
-    const db = getDatabase();
-    const skiTeamRef = ref(db, "users/ski-team");
-    const snapshot = await firebaseGet(skiTeamRef);
-    if (snapshot.exists()) {
-      const promises: any[] = [];
-      snapshot.forEach((childSnapshot) => {
-        const volunteerId = childSnapshot.key;
-        if (volunteerId) {
-          const volunteerFlagRef = ref(
-            db,
-            "users/ski-team/" + volunteerId + "/signedForNextPeriod"
-          );
-          promises.push(set(volunteerFlagRef, false));
-        }
-      });
-      await Promise.all(promises);
-    }
 
     if (Platform.OS === "web") {
       alert("All done. Back to admin page");
@@ -321,26 +273,12 @@ export default function Scheduling() {
             onSave={handleSave}
             scheduledDates={scheduledDates}
           />
-          {step1Edited && (
-            <TouchableOpacity onPress={handleUndoEditStep1}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Undo Edit Step 1
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       ) : (
         <View style={{ marginBottom: 40 }}>
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
             Step 1 Completed
           </Text>
-          {!step2Completed && !step3Completed && !step2Edited && (
-            <TouchableOpacity onPress={handleEditStep1}>
-              <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                Edit Step 1
-              </Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
 
@@ -373,59 +311,27 @@ export default function Scheduling() {
               </View>
             </View>
           )}
-          {!step2Completed ? (
-            <View>
-              <TouchableOpacity
-                onPress={handleCreateAutoSchedule}
-                style={{
-                  padding: 15,
-                  backgroundColor: buttonColor,
-                  borderRadius: 5,
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: "#fff", fontWeight: "bold" }}>
-                  Create Schedule
-                </Text>
-              </TouchableOpacity>
-              {step2Edited && (
-                <TouchableOpacity onPress={handleUndoEditStep2}>
-                  <Text
-                    style={{ color: "blue", textDecorationLine: "underline" }}
-                  >
-                    Undo Edit Step 2
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+          {!scheduleCreated ? (
+            <TouchableOpacity
+              onPress={handleCreateAutoSchedule}
+              style={{
+                padding: 15,
+                backgroundColor: buttonColor,
+                borderRadius: 5,
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                Create Schedule
+              </Text>
+            </TouchableOpacity>
           ) : (
-            <View style={{ marginBottom: 40 }}>
-              {!step3Completed && !step2Edited && (
-                <TouchableOpacity onPress={handleEditStep2}>
-                  <Text
-                    style={{ color: "blue", textDecorationLine: "underline" }}
-                  >
-                    Edit Step 2
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Step 3 with edit and complete functionality */}
-      {step2Completed && (
-        <View ref={step3Ref} style={{ marginBottom: 40 }}>
-          <Text style={{ fontSize: 24, marginBottom: 10 }}>
-            {step3Completed ? "Step 3 Completed" : "Step 3"}
-          </Text>
-          {!step3Completed ? (
             <View>
-              <AssignedVolunteers onSave={handleCompleteStep3} />
+              <AssignedVolunteers
+                onSave={handleCompleteStep2}
+                schedule={schedule}
+              />
             </View>
-          ) : (
-            <View style={{ marginBottom: 40 }} />
           )}
         </View>
       )}

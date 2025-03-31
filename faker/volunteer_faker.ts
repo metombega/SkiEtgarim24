@@ -56,20 +56,20 @@ const saveVolunteer = async (volunteer: Volunteer): Promise<void> => {
 };
 
 const workers = {
-    'Alice': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager', 'skipper'] },
-    'Bob': { 'max_work_days': 2, 'experties': ['skipper', 'activity_manager'] },
-    'Charlie': { 'max_work_days': 3, 'experties': ['driver', 'activity_manager'] },
-    'David': { 'max_work_days': 4, 'experties': ['activity_manager', 'skipper'] },
-    'Eve': { 'max_work_days': 4, 'experties': ['driver', 'activity_manager', 'skipper'] },
-    'Frank': { 'max_work_days': 1, 'experties': ['driver', 'activity_manager', 'skipper'] },
-    'Grace': { 'max_work_days': 4, 'experties': ['activity_manager'] },
-    'Heidi': { 'max_work_days': 1, 'experties': [] },
-    'Ivan': { 'max_work_days': 2, 'experties': ['driver', 'skipper'] }
+    'Alice': { 'maxWorkDays': 3, 'certifications': ['driver', 'activity_manager', 'skipper'] },
+    'Bob': { 'maxWorkDays': 2, 'certifications': ['activity_manager'] },
+    'Charlie': { 'maxWorkDays': 3, 'certifications': ['driver', 'activity_manager'] },
+    'David': { 'maxWorkDays': 4, 'certifications': ['activity_manager', 'skipper'] },
+    'Eve': { 'maxWorkDays': 4, 'certifications': ['driver', 'activity_manager', 'skipper'] },
+    'Frank': { 'maxWorkDays': 1, 'certifications': ['driver', 'activity_manager', 'skipper'] },
+    'Grace': { 'maxWorkDays': 4, 'certifications': ['activity_manager'] },
+    'Heidi': { 'maxWorkDays': 1, 'certifications': [] },
+    'Ivan': { 'maxWorkDays': 2, 'certifications': ['driver', 'skipper'] }
   };
   
   (async () => {
     for (const [name, details] of Object.entries(workers)) {
-      const volunteer = createVolunteer(name, details.experties, details.max_work_days - 1, 1);
+      const volunteer = createVolunteer(name, details.certifications, details.maxWorkDays - 1, 1);
       await saveVolunteer(volunteer);
     }
   })();

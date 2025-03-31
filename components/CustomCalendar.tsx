@@ -1,5 +1,6 @@
 import { Calendar, DateData } from "react-native-calendars";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 interface CalendarProps {
   selectedDay?: string | null;
@@ -7,16 +8,53 @@ interface CalendarProps {
 }
 
 const CustomCalendar: FC<CalendarProps> = ({ setSelectedDay, selectedDay }) => {
-  // Define marked dates
-  const markedDates: Record<
-    string,
-    { selected: boolean; selectedColor: string }
-  > = {
-    "2025-01-25": { selected: true, selectedColor: "green" }, // Selectable
-    "2025-01-26": { selected: true, selectedColor: "red" }, // Taken
-    "2025-01-27": { selected: true, selectedColor: "black" }, // Unavailable
-    "2025-01-28": { selected: true, selectedColor: "blue" }, // Already signed
-  };
+  const [markedDates, setMarkedDates] = useState<
+    Record<string, { selected: boolean; selectedColor: string }>
+  >({});
+
+  useEffect(() => {
+    const db = getDatabase();
+    const activitiesRef = ref(db, "activities");
+    const unsubscribe = onValue(activitiesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const updatedMarkedDates: Record<
+          string,
+          { selected: boolean; selectedColor: string }
+        > = {};
+
+        Object.keys(data).forEach((date) => {
+          const status = data[date]?.status;
+          let selectedColor = "";
+
+          switch (status) {
+            case "cancelled":
+              selectedColor = "red";
+              break;
+            case "finished":
+              selectedColor = "black";
+              break;
+            case "volunteers_assigned":
+              selectedColor = "blue";
+              break;
+            default:
+              break;
+          }
+
+          if (selectedColor) {
+            updatedMarkedDates[date] = {
+              selected: true,
+              selectedColor,
+            };
+          }
+        });
+
+        setMarkedDates(updatedMarkedDates);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener on unmount
+  }, []);
 
   const handleDayPress = (day: DateData) => {
     if (markedDates[day.dateString]?.selectedColor === "green") {
