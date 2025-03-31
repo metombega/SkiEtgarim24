@@ -57,7 +57,7 @@ const saveVolunteer = async (volunteer: Volunteer): Promise<void> => {
 
 const workers = {
     'Alice': { 'maxWorkDays': 3, 'certifications': ['driver', 'activity_manager', 'skipper'] },
-    'Bob': { 'maxWorkDays': 2, 'certifications': ['skipper', 'activity_manager'] },
+    'Bob': { 'maxWorkDays': 2, 'certifications': ['activity_manager'] },
     'Charlie': { 'maxWorkDays': 3, 'certifications': ['driver', 'activity_manager'] },
     'David': { 'maxWorkDays': 4, 'certifications': ['activity_manager', 'skipper'] },
     'Eve': { 'maxWorkDays': 4, 'certifications': ['driver', 'activity_manager', 'skipper'] },

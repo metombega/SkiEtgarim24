@@ -37,8 +37,8 @@ export default function Scheduling() {
   const [totalVolunteers, setTotalVolunteers] = useState(0);
   const [signedVolunteers, setSignedVolunteers] = useState(0);
   const [step2Completed, setStep2Completed] = useState(false);
-  const [scheduleIssues, setScheduleIssues] = useState<string[]>([]); // State to store schedule issues
   const [scheduleCreated, setScheduleCreated] = useState(false); // New state to track if the schedule is created
+  const [schedule, setSchedule] = useState<Record<string, any>>({}); // State to store the schedule
 
   // Define refs for each step
   const step1Ref = useRef<View>(null);
@@ -182,21 +182,20 @@ export default function Scheduling() {
     const markStep2Completed = async () => {
       const workers = await fetchWorkersFromFirebase();
       const dateToWorkers = await fetchDateToWorkersFromFirebase();
-      const schedule = await autoSchedule(workers, dateToWorkers);
+      const generatedSchedule = await autoSchedule(workers, dateToWorkers);
 
-      console.log("Generated Schedule:", schedule); // Debugging log
+      console.log("Generated Schedule:", generatedSchedule); // Debugging log
 
-      // Analyze the schedule for issues
-      const issues = await analyzeSchedule(schedule, workers, dateToWorkers);
-      setScheduleIssues(issues); // Store the issues in state
+      // Update the schedule state
+      setSchedule(generatedSchedule);
 
       const db = getDatabase();
-      const promises = Object.keys(schedule).flatMap((date) => {
+      const promises = Object.keys(generatedSchedule).flatMap((date) => {
         const volunteersRef = ref(db, `activities/${date}/volunteers`);
         const rolesRef = ref(db, `activities/${date}/roles`);
 
-        const volunteers = schedule[date].workers;
-        const roles = schedule[date].roles;
+        const volunteers = generatedSchedule[date].workers;
+        const roles = generatedSchedule[date].roles;
 
         return [set(volunteersRef, volunteers), set(rolesRef, roles)];
       });
@@ -236,78 +235,10 @@ export default function Scheduling() {
 
   // Handler for completing Step 3
   const handleCompleteStep2 = async () => {
-    if (scheduleIssues.length > 0) {
-      const issuesMessage = scheduleIssues.join("\n");
-
-      if (Platform.OS === "web") {
-        const confirmed = window.confirm(
-          `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`
-        );
-        if (!confirmed) {
-          return; // Exit if the user cancels
-        }
-      } else {
-        const userResponse = await new Promise((resolve) => {
-          Alert.alert(
-            "Schedule Issues",
-            `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`,
-            [
-              {
-                text: "Cancel",
-                style: "cancel",
-                onPress: () => resolve(false),
-              },
-              { text: "OK", onPress: () => resolve(true) },
-            ]
-          );
-        });
-
-        if (!userResponse) {
-          return; // Exit if the user cancels
-        }
-      }
-    }
-
-    // Proceed with completing Step 2
     setStep1Completed(false);
     setStep2Completed(false);
     AsyncStorage.setItem("step1Completed", "false");
     AsyncStorage.setItem("step2Completed", "false");
-
-    const db = getDatabase();
-    const skiTeamRef = ref(db, "users/ski-team");
-    const snapshot = await firebaseGet(skiTeamRef);
-    if (snapshot.exists()) {
-      const promises: any[] = [];
-      snapshot.forEach((childSnapshot) => {
-        const volunteerId = childSnapshot.key;
-        if (volunteerId) {
-          const volunteerFlagRef = ref(
-            db,
-            "users/ski-team/" + volunteerId + "/signedForNextPeriod"
-          );
-          promises.push(set(volunteerFlagRef, false));
-        }
-      });
-      await Promise.all(promises);
-    }
-
-    const activitiesRef = ref(db, "activities");
-    const activities_snapshot = await firebaseGet(activitiesRef);
-    if (activities_snapshot.exists()) {
-      const promises: any[] = [];
-      activities_snapshot.forEach((childSnapshot) => {
-        const activityData = childSnapshot.val();
-        if (activityData.status === "initialized") {
-          const activityDayRef = ref(
-            db,
-            "activities/" + childSnapshot.key + "/status"
-          );
-          promises.push(set(activityDayRef, "Volunteers Assigned"));
-        }
-      });
-      await Promise.all(promises);
-    }
 
     if (Platform.OS === "web") {
       alert("All done. Back to admin page");
@@ -396,20 +327,10 @@ export default function Scheduling() {
             </TouchableOpacity>
           ) : (
             <View>
-              <AssignedVolunteers onSave={handleCompleteStep2} />
-              {/* Display schedule issues */}
-              {scheduleIssues.length > 0 && (
-                <View style={{ marginTop: 20 }}>
-                  <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-                    Schedule Issues:
-                  </Text>
-                  {scheduleIssues.map((issue, index) => (
-                    <Text key={index} style={{ color: "red", marginTop: 5 }}>
-                      - {issue}
-                    </Text>
-                  ))}
-                </View>
-              )}
+              <AssignedVolunteers
+                onSave={handleCompleteStep2}
+                schedule={schedule}
+              />
             </View>
           )}
         </View>

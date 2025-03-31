@@ -6,8 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Alert,
+  Platform,
 } from "react-native";
 import { getDatabase, ref, get, set } from "firebase/database";
+import { analyzeSchedule } from "../helpers/AutoSchedule";
+
+type Schedule = {
+  roles: Record<string, string[]>;
+  workers: string[];
+  replaceableWorkers: string[];
+  expertises: Record<string, number>;
+};
 
 type VolunteerAssignments = Record<
   string,
@@ -16,9 +26,13 @@ type VolunteerAssignments = Record<
 
 interface AssignedVolunteersProps {
   onSave: () => void;
+  schedule: Record<string, Schedule>;
 }
 
-const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
+const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
+  onSave,
+  schedule,
+}) => {
   const [assignments, setAssignments] = useState<VolunteerAssignments>({});
   const [originalAssignments, setOriginalAssignments] =
     useState<VolunteerAssignments>({});
@@ -26,6 +40,7 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
   const [volunteers, setVolunteers] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [issues, setIssues] = useState<string[]>([]); // State to store schedule issues
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -89,6 +104,19 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
     fetchAssignments();
   }, []);
 
+  useEffect(() => {
+    const fetchIssues = async () => {
+      // print schedule
+      console.log("Schedule:", schedule);
+      const issues = await analyzeSchedule(schedule);
+      setIssues(issues);
+    };
+
+    if (schedule) {
+      fetchIssues();
+    }
+  }, [schedule]);
+
   const handleCellClick = (volunteer: string, date: string) => {
     if (!isEditing) return;
 
@@ -112,7 +140,39 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
     setHasUnsavedChanges(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (issues.length > 0) {
+      const issuesMessage = issues.join("\n");
+
+      if (Platform.OS === "web") {
+        const confirmed = window.confirm(
+          `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`
+        );
+        if (!confirmed) {
+          return; // Exit if the user cancels
+        }
+      } else {
+        const userResponse = await new Promise((resolve) => {
+          Alert.alert(
+            "Schedule Issues",
+            `The following issues were found:\n\n${issuesMessage}\n\nAre you sure you want to proceed?`,
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => resolve(false),
+              },
+              { text: "OK", onPress: () => resolve(true) },
+            ]
+          );
+        });
+
+        if (!userResponse) {
+          return; // Exit if the user cancels
+        }
+      }
+    }
+
     const db = getDatabase();
     dates.forEach((date) => {
       const volunteersForDate: string[] = [];
@@ -199,6 +259,16 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({ onSave }) => {
           title="Save Changes and message to volunteers"
           onPress={handleSave}
         />
+        {issues.length > 0 && (
+          <View style={styles.issuesContainer}>
+            <Text style={styles.issuesTitle}>Schedule Issues:</Text>
+            {issues.map((issue, index) => (
+              <Text key={index} style={styles.issue}>
+                - {issue}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -231,6 +301,18 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     flex: 1,
     textAlign: "center",
+  },
+  issuesContainer: {
+    marginTop: 20,
+  },
+  issuesTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  issue: {
+    color: "red",
+    marginBottom: 5,
   },
 });
 

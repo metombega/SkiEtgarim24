@@ -289,7 +289,11 @@ export async function analyzeSchedule(
             );
         }
     }
-
+    // print the issues
+    console.log("Issues found in the schedule:");
+    for (const issue of issues) {
+        console.log(issue);
+    }
     return issues;
 }
 
