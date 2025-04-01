@@ -38,6 +38,9 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
     useState<VolunteerAssignments>({});
   const [dates, setDates] = useState<string[]>([]);
   const [volunteers, setVolunteers] = useState<string[]>([]);
+  const [volunteerDisplayNames, setVolunteerDisplayNames] = useState<string[]>(
+    []
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [issues, setIssues] = useState<string[]>([]); // State to store schedule issues
@@ -94,12 +97,35 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
             newAssignments[volunteer][date] = "green";
           }
         }
+        console.log("newVolunteers", newVolunteers);
+        console.log("availableVolunteers", availableVolunteers);
+        console.log("volunteers", volunteers);
       }
+
+      // Fetch volunteer names
+      const volunteerNames: Record<string, string> = {};
+      await Promise.all(
+        Array.from(newVolunteers).map(async (volunteerId) => {
+          const userRef = ref(db, `users/ski-team/${volunteerId}/fullName`);
+          const userSnapshot = await get(userRef);
+          if (userSnapshot.exists()) {
+            volunteerNames[volunteerId] = userSnapshot.val();
+          } else {
+            volunteerNames[volunteerId] = volunteerId; // Fallback to ID if name not found
+          }
+        })
+      );
+
+      // Map volunteer IDs to names
+      const volunteerNamesArray = Array.from(newVolunteers).map(
+        (volunteerId) => volunteerNames[volunteerId]
+      );
 
       setAssignments(newAssignments);
       setOriginalAssignments(newAssignments);
       setDates(newDates);
-      setVolunteers(Array.from(newVolunteers));
+      setVolunteers(Array.from(newVolunteers)); // Save IDs
+      setVolunteerDisplayNames(volunteerNamesArray); // Save names for display
     };
 
     fetchAssignments();
@@ -266,8 +292,8 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
                 </Text>
               ))}
             </View>
-            {volunteers.map((volunteer) => (
-              <View key={volunteer} style={styles.row}>
+            {volunteerDisplayNames.map((volunteer, index) => (
+              <View key={volunteers[index]} style={styles.row}>
                 <Text style={styles.cell}>{volunteer}</Text>
                 {dates.map((date) => (
                   <TouchableOpacity
@@ -276,10 +302,10 @@ const AssignedVolunteers: React.FC<AssignedVolunteersProps> = ({
                       styles.cell,
                       {
                         backgroundColor:
-                          assignments[volunteer]?.[date] || "white",
+                          assignments[volunteers[index]]?.[date] || "white",
                       },
                     ]}
-                    onPress={() => handleCellClick(volunteer, date)}
+                    onPress={() => handleCellClick(volunteers[index], date)}
                   ></TouchableOpacity>
                 ))}
               </View>

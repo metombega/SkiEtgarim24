@@ -11,9 +11,21 @@ admin.initializeApp({
   databaseURL: firebaseConfig['databaseURL']
 });
 
-const createVolunteer = (id: string, certifications: string[], maxWeekdays: number, maxWeekends: number): Volunteer => {
+const nameToIdMap = {
+  'Alice': 'CMpAsJHhzFMzbULrXL6qRQAAImh2',
+  'Bob': 'dDxY2uaWiDN0SoiTBOLFuFWmKE42',
+  'Charlie': 'b3njZnGVGNOG4ayWKWh8xBUqIE92',
+  'David': 'MqbE93fZJkOAAYP21iX5nTOlzOh2',
+  'Eve': 'byKf10gLG5QeNseuORABdghLYUv1',
+  'Frank': 'mMXUHdYqN8Oj7TZyKBYeO1Pm9Iz1',
+  'Grace': 'JeAeKPzCrcRgaJD16MpBsI3g9A13',
+  'Heidi': 'HuxzSEVjl1Nr2GuAwskkiRcKIwZ2',
+  'Ivan': 'ze1W9jfHRBdb9b0lQ1BFKHKLNsE2',
+};
+
+const createVolunteer = (id: keyof typeof nameToIdMap, certifications: string[], maxWeekdays: number, maxWeekends: number): Volunteer => {
   return {
-      id: id,
+      id: nameToIdMap[id],
       username: id,
       phoneNumber: '1234567890',
       email: `${id}@example.com`,
@@ -69,7 +81,7 @@ const workers = {
   
   (async () => {
     for (const [name, details] of Object.entries(workers)) {
-      const volunteer = createVolunteer(name, details.certifications, details.maxWorkDays - 1, 1);
+      const volunteer = createVolunteer(name as keyof typeof nameToIdMap, details.certifications, details.maxWorkDays - 1, 1);
       await saveVolunteer(volunteer);
     }
   })();
