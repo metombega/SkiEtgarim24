@@ -11,7 +11,7 @@ import {
 import { ActivityDayRouteProp } from "./navigationTypes";
 import { useRoute } from "@react-navigation/native";
 import { getDatabase, ref, onValue, update } from "firebase/database";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 
 const ActivityDay = () => {
   const route = useRoute<ActivityDayRouteProp>();
@@ -22,8 +22,8 @@ const ActivityDay = () => {
   >(null);
   const [loading, setLoading] = useState(true);
   const [editedDetails, setEditedDetails] = useState<Record<string, any>>({});
-  const [isEditing, setIsEditing] = useState(false); // New state for edit mode
-  const [isManager, setIsManager] = useState(false); // New state for manager check
+  const [isEditing, setIsEditing] = useState(false);
+  const [isManager, setIsManager] = useState(false);
   const auth = getAuth();
   const userId = auth.currentUser;
 
