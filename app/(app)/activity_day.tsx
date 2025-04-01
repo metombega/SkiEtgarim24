@@ -11,6 +11,7 @@ import {
 import { ActivityDayRouteProp } from "./navigationTypes";
 import { useRoute } from "@react-navigation/native";
 import { getDatabase, ref, onValue, update } from "firebase/database";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 const ActivityDay = () => {
   const route = useRoute<ActivityDayRouteProp>();
@@ -22,6 +23,9 @@ const ActivityDay = () => {
   const [loading, setLoading] = useState(true);
   const [editedDetails, setEditedDetails] = useState<Record<string, any>>({});
   const [isEditing, setIsEditing] = useState(false); // New state for edit mode
+  const [isManager, setIsManager] = useState(false); // New state for manager check
+  const auth = getAuth();
+  const userId = auth.currentUser;
 
   useEffect(() => {
     const db = getDatabase();
@@ -40,6 +44,21 @@ const ActivityDay = () => {
 
     return () => unsubscribe(); // Cleanup the listener on unmount
   }, [date]);
+
+  useEffect(() => {
+    const db = getDatabase();
+    const managersRef = ref(db, `users/managers`);
+    const unsubscribe = onValue(managersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const managers = snapshot.val();
+        setIsManager(Object.keys(managers).includes(userId?.uid || ""));
+      } else {
+        setIsManager(false);
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener on unmount
+  }, [userId]);
 
   const handleInputChange = (key: string, value: string | string[]) => {
     setEditedDetails((prev) => ({
@@ -69,10 +88,12 @@ const ActivityDay = () => {
       ) : (
         <ScrollView style={styles.scrollContainer}>
           <View style={styles.detailsContainer}>
-            <Button
-              title={isEditing ? "Cancel" : "Edit"}
-              onPress={() => setIsEditing(!isEditing)} // Toggle edit mode
-            />
+            {isManager && (
+              <Button
+                title={isEditing ? "Cancel" : "Edit"}
+                onPress={() => setIsEditing(!isEditing)} // Toggle edit mode
+              />
+            )}
             {Object.entries(editedDetails).map(([key, value]) => (
               <View key={key} style={styles.inputGroup}>
                 <Text style={styles.label}>{key}:</Text>
