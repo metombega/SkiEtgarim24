@@ -1,6 +1,9 @@
 import { Calendar, DateData } from "react-native-calendars";
 import { FC, useEffect, useState } from "react";
 import { getDatabase, ref, onValue } from "firebase/database";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../app/(app)/navigationTypes";
 
 interface CalendarProps {
   selectedDay?: string | null;
@@ -11,6 +14,9 @@ const CustomCalendar: FC<CalendarProps> = ({ setSelectedDay, selectedDay }) => {
   const [markedDates, setMarkedDates] = useState<
     Record<string, { selected: boolean; selectedColor: string }>
   >({});
+
+  const navigation =
+    useNavigation<StackNavigationProp<RootStackParamList, "activity_day">>();
 
   useEffect(() => {
     const db = getDatabase();
@@ -57,8 +63,13 @@ const CustomCalendar: FC<CalendarProps> = ({ setSelectedDay, selectedDay }) => {
   }, []);
 
   const handleDayPress = (day: DateData) => {
-    if (markedDates[day.dateString]?.selectedColor === "green") {
+    const selectedColor = markedDates[day.dateString]?.selectedColor;
+
+    if (selectedColor) {
       setSelectedDay(day.dateString);
+
+      // Navigate to the activity_day page with the selected date
+      navigation.navigate("activity_day", { date: day.dateString });
     } else {
       setSelectedDay(null);
     }

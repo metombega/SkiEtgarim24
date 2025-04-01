@@ -6,6 +6,7 @@ export type RootStackParamList = {
   surfer_details: { id: string };
   VolunteersManagement: undefined;
   volunteer_details: { id: string };
+  activity_day: { date: string };
 };
 
 export type SurferDetailsRouteProp = RouteProp<
@@ -23,4 +24,12 @@ export type VolunteerDetailsRouteProp = RouteProp<
 export type VolunteerDetailsNavigationProp = StackNavigationProp<
   RootStackParamList,
   "volunteer_details"
+>;
+export type ActivityDayRouteProp = RouteProp<
+  RootStackParamList,
+  "activity_day"
+>;
+export type ActivityDayNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "activity_day"
 >;
