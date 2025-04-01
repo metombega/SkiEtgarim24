@@ -233,7 +233,7 @@ export default function Scheduling() {
     }
   };
 
-  // Handler for completing Step 3
+  // Handler for completing Step 2
   const handleCompleteStep2 = async () => {
     setStep1Completed(false);
     setStep2Completed(false);
@@ -286,7 +286,7 @@ export default function Scheduling() {
       {step1Completed && (
         <View ref={step2Ref} style={{ marginBottom: 40 }}>
           <Text style={{ fontSize: 24, marginBottom: 10 }}>
-            {step2Completed ? "Step 2 Completed" : "Step 2"}
+            Step 2: Auto Schedule
           </Text>
           {!step2Completed && (
             <View style={{ marginBottom: 20 }}>
