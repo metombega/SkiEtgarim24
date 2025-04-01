@@ -11,6 +11,18 @@ admin.initializeApp({
   databaseURL: firebaseConfig['databaseURL']
 });
 
+const nameToIdMap = {
+  'Alice': 'CMpAsJHhzFMzbULrXL6qRQAAImh2',
+  'Bob': 'dDxY2uaWiDN0SoiTBOLFuFWmKE42',
+  'Charlie': 'b3njZnGVGNOG4ayWKWh8xBUqIE92',
+  'David': 'MqbE93fZJkOAAYP21iX5nTOlzOh2',
+  'Eve': 'byKf10gLG5QeNseuORABdghLYUv1',
+  'Frank': 'mMXUHdYqN8Oj7TZyKBYeO1Pm9Iz1',
+  'Grace': 'JeAeKPzCrcRgaJD16MpBsI3g9A13',
+  'Heidi': 'HuxzSEVjl1Nr2GuAwskkiRcKIwZ2',
+  'Ivan': 'ze1W9jfHRBdb9b0lQ1BFKHKLNsE2',
+};
+
 export const createRandomActivity = (availableVolunteers: string[], date: Date): Activity => {
   return {
     date: date,
@@ -50,7 +62,7 @@ const date_to_workers = {
 
 const activities = Object.entries(date_to_workers).map(([date, availableVolunteers]) => ({
   date: new Date(date),
-  availableVolunteers: availableVolunteers
+  availableVolunteers: (availableVolunteers as (keyof typeof nameToIdMap)[]).map(volunteer => nameToIdMap[volunteer] || volunteer) // Replace names with IDs
 }));
 
 (async () => {
