@@ -1,52 +1,8 @@
-import { getDatabase, ref, get } from "firebase/database";
-
 type Worker = {
-    maxWorkDays: number;
+    maxWeekdays: number;
+    maxWeekends: number;
     expertises: string[];
 };
-
-export async function fetchWorkersFromFirebase(): Promise<Record<string, Worker>> {
-    const db = getDatabase();
-    const skiTeamRef = ref(db, "users/ski-team");
-    const snapshot = await get(skiTeamRef);
-    if (!snapshot.exists()) {
-        throw new Error("No worker data available in Firebase");
-    }
-    const fetchedData = snapshot.val();
-    const firebaseWorkers: Record<string, Worker> = {};
-    for (const uid in fetchedData) {
-        const userData = fetchedData[uid];
-        const maxWorkDays = userData.maxWorkDays;
-        const expertises = userData.certifications 
-            ? Object.keys(userData.certifications).filter(cert => userData.certifications[cert].exists).map(cert => userData.certifications[cert].type)
-            : [];
-        firebaseWorkers[uid] = { maxWorkDays, expertises };
-    }
-    return firebaseWorkers;
-}
-
-export async function fetchDateToWorkersFromFirebase(): Promise<Record<string, string[]>> {
-    const db = getDatabase();
-    const activitiesRef = ref(db, "activities");
-    const snapshot = await get(activitiesRef);
-    const fetchedData = snapshot.val();
-    const initializedActivities = Object.keys(fetchedData).reduce((acc, date) => {
-        if (fetchedData[date].status === 'initialized') {
-            acc[date] = fetchedData[date];
-        }
-        return acc;
-    }, {} as Record<string, any>);
-    if (!snapshot.exists()) {
-        throw new Error("No activity data available in Firebase");
-    }
-    const firebaseDateToWorkers: Record<string, string[]> = {};
-    for (const date in initializedActivities) {
-        const availableVolunteersDict = initializedActivities[date].availableVolunteers || {};
-        const availableVolunteers = Object.values(availableVolunteersDict) as string[];
-        firebaseDateToWorkers[date] = availableVolunteers;
-    }
-    return firebaseDateToWorkers;
-}
 
 type Schedule = {
     roles: Record<string, string[]>;
@@ -58,24 +14,15 @@ type Schedule = {
 let workers: Record<string, Worker> = {};
 let dateToWorkers: Record<string, string[]> = {};
 
-// Fetch workers and dateToWorkers from Firebase
-Promise.all([fetchWorkersFromFirebase(), fetchDateToWorkersFromFirebase()]).then(([fetchedWorkers, fetchedDateToWorkers]) => {
-    workers = fetchedWorkers;
-    dateToWorkers = fetchedDateToWorkers;
-});
+
 
 export async function autoSchedule(
-    workersOrigin: Record<string, Worker> = {},
-    dateToWorkersOrigin: Record<string, string[]> = {},
-    mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 },
-    numOfWorkersPerDay: number = 5
+    workersOrigin: Record<string, Worker>,
+    dateToWorkersOrigin: Record<string, string[]>,
+    mandatoryExpertises: Record<string, number>,
+    numOfWorkersPerDay: number,
+    isWeekend: boolean = false
 ): Promise<Record<string, Schedule>> {
-    if (Object.keys(workersOrigin).length === 0) {
-        workersOrigin = await fetchWorkersFromFirebase();
-    }
-    if (Object.keys(dateToWorkersOrigin).length === 0) {
-        dateToWorkersOrigin = await fetchDateToWorkersFromFirebase();
-    }
 
     for (const date in dateToWorkersOrigin) {
         dateToWorkers[date] = [...dateToWorkersOrigin[date]];
@@ -91,13 +38,17 @@ export async function autoSchedule(
     
     for (const date of sortedActivityDates) {
         schedule[date] = { workers: [], replaceableWorkers: [], expertises: {}, roles: {} };
-        let availableWorkers = [...dateToWorkers[date]].filter(worker => workers[worker].maxWorkDays > 0);
+        let availableWorkers = [...dateToWorkers[date]].filter(worker => {
+            const maxDays = isWeekend ? workers[worker].maxWeekends : workers[worker].maxWeekdays;
+            return maxDays > 0;
+        });
         
         availableWorkers.sort((a, b) => a.localeCompare(b))
             .sort((a, b) => {
                 const availableDaysA = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(a)).length;
                 const availableDaysB = Object.keys(dateToWorkers).filter(d => dateToWorkers[d].includes(b)).length;
-                return (availableDaysA / workers[a].maxWorkDays || Infinity) - (availableDaysB / workers[b].maxWorkDays || Infinity);
+                return (availableDaysA / (isWeekend ? workers[a].maxWeekends : workers[a].maxWeekdays) || Infinity) - 
+                       (availableDaysB / (isWeekend ? workers[b].maxWeekends : workers[b].maxWeekdays) || Infinity);
             });
         
         let expertisesToBook = Object.keys(mandatoryExpertises)
@@ -112,7 +63,11 @@ export async function autoSchedule(
             for (const worker of workersWithExpertise) {
                 if (expertisesToBook[expertise] > 0) {
                     availableWorkers = availableWorkers.filter(w => w !== worker);
-                    workers[worker].maxWorkDays--;
+                    if (isWeekend) {
+                        workers[worker].maxWeekends--;
+                    } else {
+                        workers[worker].maxWeekdays--;
+                    }
                     for (const workerExpertise of workers[worker].expertises) {
                         expertisesToBook[workerExpertise]--;
                     }
@@ -120,10 +75,6 @@ export async function autoSchedule(
                     schedule[date].workers.push(worker);
                 }
             }
-            if (expertisesToBook[expertise] > 0) {
-                console.log(`No more workers with expertise ${expertise} on date ${date}`);
-            }
-
         }
 
         // Book the rest of the workers
@@ -131,7 +82,11 @@ export async function autoSchedule(
         for (let i = 0; i < numOfWorkersLeftCopy; i++) {
             if (availableWorkers.length > 0) {
                 const worker = availableWorkers.shift()!;
-                workers[worker].maxWorkDays--;
+                if (isWeekend) {
+                    workers[worker].maxWeekends--;
+                } else {
+                    workers[worker].maxWeekdays--;
+                }
                 
                 for (const workerExpertise of workers[worker].expertises) {
                     expertisesToBook[workerExpertise]--;
@@ -224,26 +179,18 @@ export async function autoSchedule(
             }
         }
     }
-    
-    for (const date in schedule) {
-        console.log(`${date}: ${schedule[date].workers}`);
-    }
+
     return schedule;
 }
 
 export async function analyzeSchedule(
     schedule: Record<string, Schedule>,
-    workers: Record<string, Worker> = {},
-    dateToWorkers: Record<string, string[]> = {},
-    mandatoryExpertises: Record<string, number> = { 'driver': 1, 'activity_manager': 1, 'skipper': 2 },
-    numOfWorkersPerDay: number = 5
+    workers: Record<string, Worker>,
+    dateToWorkers: Record<string, string[]>,
+    mandatoryExpertises: Record<string, number>,
+    numOfWorkersPerDay: number,
+    isWeekend: boolean = false
 ): Promise<string[]> {
-    if (Object.keys(workers).length === 0) {
-        workers = await fetchWorkersFromFirebase(); // Ensure this is inside an async function
-    }
-    if (Object.keys(dateToWorkers).length === 0) {
-        dateToWorkers = await fetchDateToWorkersFromFirebase(); // Ensure this is inside an async function
-    }
     const issues: string[] = [];
     for (const date in schedule) {
         const daySchedule = schedule[date];
@@ -281,20 +228,107 @@ export async function analyzeSchedule(
 
     // Check if the workers have more workdays than allowed
     for (const workerId in workers) {
-        const maxWorkDays = workers[workerId].maxWorkDays;
+        const maxWorkDays = isWeekend ? workers[workerId].maxWeekends : workers[workerId].maxWeekdays;
+        const dayType = isWeekend ? "weekend" : "weekday";
         const scheduledDays = Object.keys(schedule).filter(date => schedule[date].workers.includes(workerId)).length;
         if (scheduledDays > maxWorkDays) {
             issues.push(
-                `Worker ${workerId} has more workdays (${scheduledDays}) than allowed (${maxWorkDays}).`
+                `Worker ${workerId} has more ${dayType} (${scheduledDays}) than allowed (${maxWorkDays}).`
             );
         }
     }
-    // print the issues
-    console.log("Issues found in the schedule:");
-    for (const issue of issues) {
-        console.log(issue);
-    }
     return issues;
+}
+
+export async function analyzeScheduleWithSeparation(
+    schedule: Record<string, Schedule>,
+    workers: Record<string, Worker>,
+    dateToWorkers: Record<string, string[]>,
+    mandatoryExpertises: Record<string, number>,
+    numOfWorkersPerDay: number
+): Promise<string[]> {
+    // Separate weekends and weekdays
+    const weekendDates: Record<string, Schedule> = {};
+    const weekdayDates: Record<string, Schedule> = {};
+
+    for (const date in schedule) {
+        const day = new Date(date).getDay();
+        if (day === 5 || day === 6) { // 0 = Sunday, 6 = Saturday
+            weekendDates[date] = schedule[date];
+        } else {
+            weekdayDates[date] = schedule[date];
+        }
+    }
+
+    // Analyze weekday schedule
+    const weekdayIssues = await analyzeSchedule(
+        weekdayDates,
+        workers,
+        dateToWorkers,
+        mandatoryExpertises,
+        numOfWorkersPerDay,
+        false // isWeekend = false
+    );
+    console.log(weekdayIssues);
+    // Analyze weekend schedule
+    const weekendIssues = await analyzeSchedule(
+        weekendDates,
+        workers,
+        dateToWorkers,
+        mandatoryExpertises,
+        numOfWorkersPerDay,
+        true // isWeekend = true
+    );
+    console.log(weekendIssues);
+
+    // Combine the results
+    const combinedIssues = [...weekdayIssues, ...weekendIssues];
+    console.log(combinedIssues);
+
+    return combinedIssues;
+}
+
+export async function autoScheduleWithSeparation(
+    workersOrigin: Record<string, Worker>,
+    dateToWorkersOrigin: Record<string, string[]>,
+    mandatoryExpertises: Record<string, number>,
+    numOfWorkersPerDay: number
+): Promise<Record<string, Schedule>> {
+    // Separate weekends and weekdays
+    const weekendDates: Record<string, string[]> = {};
+    const weekdayDates: Record<string, string[]> = {};
+
+    for (const date in dateToWorkersOrigin) {
+        const day = new Date(date).getDay();
+        if (day === 5 || day === 6) {
+            weekendDates[date] = dateToWorkersOrigin[date];
+        } else {
+            weekdayDates[date] = dateToWorkersOrigin[date];
+        }
+    }
+
+    // Call autoSchedule for weekdays
+    const weekdaySchedule = await autoSchedule(
+        workersOrigin,
+        weekdayDates,
+        mandatoryExpertises,
+        numOfWorkersPerDay,
+        false // isWeekend = false
+    );
+
+    // Call autoSchedule for weekends
+    const weekendSchedule = await autoSchedule(
+        workersOrigin,
+        weekendDates,
+        mandatoryExpertises,
+        numOfWorkersPerDay,
+        true // isWeekend = true
+    );
+
+    // Combine the results
+    const combinedSchedule: Record<string, Schedule> = { ...weekdaySchedule, ...weekendSchedule };
+
+    return combinedSchedule;
 }
 
 export function replaceWorkers(
@@ -313,7 +347,6 @@ export function replaceWorkers(
         schedule[date1].workers.includes(worker1) &&
         schedule[date2].workers.includes(worker2)
     ) {
-        console.log(`Replaced ${worker1} with ${worker2} in ${date1} and ${date2}`);
         // Swap workers between dates
         schedule[date1].workers = schedule[date1].workers.filter(w => w !== worker1);
         schedule[date1].workers.push(worker2);
@@ -343,9 +376,5 @@ export function replaceWorkers(
                 schedule[date2].expertises[expertise]--;
             }
         }
-    } else {
-        console.log(
-            `A replacement of ${worker1} with ${worker2} in ${date1} and ${date2} is not possible`
-        );
     }
 }
