@@ -31,6 +31,15 @@ const workers = {
 
 (async () => {
     const schedule = await autoScheduleWithSeparation(workers, dateToWorkers, { 'driver': 1, 'activity_manager': 1, 'skipper': 2 }, 5);
+    console.log("Results:");
+    for (const date in schedule) {
+        console.log(`${date}: ${schedule[date].workers.join(',')}`);
+        console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
+        console.log('Roles:');
+        for (const role in schedule[date].roles) {
+            console.log(`${role}: ${schedule[date].roles[role].join(',')}`);
+        }
+    }
     const issues = analyzeScheduleWithSeparation(schedule, workers, dateToWorkers, { 'driver': 1, 'activity_manager': 1, 'skipper': 2 }, 5);
     console.log("Results:");
     for (const date in schedule) {
@@ -50,4 +59,4 @@ const workers = {
 //     'Date 5/17/2025 does not have the required expertise "driver".',
 //     'Wrong number of workers on date 5/16/2025. Expected: 5, Got: 2.',
 //     'Date 5/16/2025 does not have the required expertise "driver".'
-//   ]
+// ]

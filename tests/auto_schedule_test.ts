@@ -54,9 +54,40 @@ const mandatoryExpertises = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1};
 // 5/6/2025: Alice,Grace,John,Charlie,David
 // 5/11/2025: Eve,Frank,David,Heidi,Grace
 // 5/8/2025: Eve,Alice,Heidi,Charlie,David
+
 // 5/10/2025: Alice,Grace,David,Frank,Charlie
 // 5/2/2025: Eve,Alice,Ivan,Grace,Bob
 // 5/3/2025: Eve,Alice,Ivan,Grace,Frank
 // 5/9/2025: Alice,Grace,John,Charlie,David
 // 5/17/2025: Eve,Frank,David,Heidi,Grace
 // 5/16/2025: Eve,Alice,Heidi,Charlie,David
+
+
+// "5/7/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
+// "5/4/2025": ["Eve", "Alice", "Ivan", "Grace", "David"],
+// "5/5/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
+// "5/6/2025": ["Alice", "Grace", "John", "Charlie", "David"],
+// "5/11/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
+// "5/8/2025": ["Eve", "Alice", "Heidi", "Bob", "Charlie"],
+
+// "5/10/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
+// "5/2/2025": ["Eve", "Alice", "Ivan", "Grace", "David"],
+// "5/3/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
+// "5/9/2025": ["Alice", "Grace", "John", "Charlie", "David"],
+// "5/17/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
+// "5/16/2025": ["Eve", "Alice", "Heidi", "Bob", "Charlie"]
+
+// "5/7/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
+// "5/4/2025": ["Eve", "Alice", "Ivan", "Grace", "Bob"],
+// "5/5/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
+// "5/6/2025": ["Alice", "Grace", "John", "Charlie", "David"],
+// "5/11/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
+// "5/8/2025": ["Eve", "Alice", "Heidi", "Charlie", "David"],
+
+// "5/10/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
+// "5/2/2025": ["Eve", "Alice", "Ivan", "Grace", "Bob"],
+// "5/3/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
+// "5/9/2025": ["Alice", "Grace", "John", "Charlie", "David"],
+// "5/17/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
+// "5/16/2025": ["Eve", "Alice", "Heidi", "Charlie", "David"]
+  
