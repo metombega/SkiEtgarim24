@@ -62,7 +62,11 @@ def schedule_workers(workers, dates):
                     for worker in workers_with_experty: # david
                         if not replaced:
                             # find dates that this worker is scheduled to work
-                            schedule_dates = {date_x: boat_index for date_x in schedule for boat_index, boat_x in enumerate(schedule[date_x]['boats']) if worker in boat_x['workers']}
+                            schedule_dates = {}
+                            for date_x in schedule:
+                                for boat_index, boat_x in enumerate(schedule[date_x]['boats']):
+                                    if worker in boat_x['workers']:
+                                        schedule_dates[date_x] = boat_index
                             # keep only the dates that the worker in replaceable_workers
                             schedule_dates = {date_x: boat_index for date_x, boat_index in schedule_dates.items() if worker in schedule[date_x]['replaceable_workers']}
                             for scheduled_date in schedule_dates.keys():

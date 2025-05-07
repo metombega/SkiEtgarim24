@@ -4,12 +4,52 @@ type Worker = {
     expertises: string[];
 };
 
+// workers = {
+//     'Alice': {'max_work_days': 2, 'experties': ['a', 'b', 'c']},
+//     'Bob': {'max_work_days': 2, 'experties': ['a', 'b', 'c']},
+//     'Charlie': {'max_work_days': 2, 'experties': ['a', 'b']},
+// }
+
+// dates = {
+//     '1/1/2025': {'available_workers': ["Alice", "Bob", "Charlie"], 'boats': [{'mandatory_experties': {'a': 0, 'b': 0, 'c': 0}, 'num_of_workers': 0}, {'mandatory_experties': {'a': 1, 'b': 1, 'c': 1}, 'num_of_workers': 2}]},
+//     '2/1/2025': {'available_workers': ["Alice", "Bob", "Charlie"], 'boats': [{'mandatory_experties': {'a': 1, 'b': 1, 'c': 1}, 'num_of_workers': 2}]},
+//     '3/1/2025': {'available_workers': ["Alice", "Bob", "Charlie"], 'boats': [{'mandatory_experties': {'a': 0, 'b': 0, 'c': 2}, 'num_of_workers': 2}]},
+// }
+// schedule = {
+    // '1/1/2025': 
+        // {'boats': [
+            // {'workers': [], 'remaining_workers': 0, 'remaining_experties': {'a': 0, 'b': 0, 'c': 0}}, 
+            // {'workers': ['Bob', 'Charlie'], 'remaining_workers': 0, 'remaining_experties': {'a': -1, 'b': -1, 'c': 0}}
+        // ], 
+        // 'replaceableWorkers': ['Bob']}, 
+    // '2/1/2025': {
+        // 'boats': [{'workers': ['Charlie', 'Alice'], 'remaining_workers': 0, 'remaining_experties': {'a': -1, 'b': -1, 'c': 0}}], 
+        // 'replaceableWorkers': ['Charlie']}, 
+    // '3/1/2025': {
+    // 'boats': [{'workers': ['Bob', 'Alice'], 'remaining_workers': 0, 'remaining_experties': {'a': -2, 'b': -2, 'c': 0}}], 
+    // 'replaceableWorkers': []
+    // }
+// }
 type Schedule = {
-    roles: Record<string, string[]>;
-    workers: string[];
+    boats: {
+        workers: string[];
+        remaining_workers: number;
+        remaining_experties: Record<string, number>;
+        roles: Record<string, string[]>;
+    }[];
     replaceableWorkers: string[];
-    expertises: Record<string, number>;
 };
+
+type DateToWorkers = Record<
+    string,
+    {
+        available_workers: string[];
+        boats: {
+            mandatory_experties: Record<string, number>;
+            num_of_workers: number;
+        }[];
+    }
+>;
 
 let workers: Record<string, Worker> = {};
 let dateToWorkers: Record<string, string[]> = {};
@@ -18,27 +58,36 @@ let dateToWorkers: Record<string, string[]> = {};
 
 export async function autoSchedule(
     workersOrigin: Record<string, Worker>,
-    dateToWorkersOrigin: Record<string, string[]>,
-    mandatoryExpertises: Record<string, number>,
-    numOfWorkersPerDay: number,
+    dateToWorkersOrigin: DateToWorkers,
     isWeekend: boolean = false
 ): Promise<Record<string, Schedule>> {
 
-    for (const date in dateToWorkersOrigin) {
-        dateToWorkers[date] = [...dateToWorkersOrigin[date]];
-    }
+    dateToWorkers = Object.fromEntries(
+        Object.entries(dateToWorkersOrigin).map(([date, info]) => [date, [...info.available_workers]])
+    );
 
     workers = JSON.parse(JSON.stringify(workersOrigin));
     
     const schedule: Record<string, Schedule> = {};
     
     const sortedActivityDates = Object.keys(dateToWorkers)
-        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-        .sort((a, b) => dateToWorkers[a].length - dateToWorkers[b].length);
+        .sort((a, b) => {
+            const aRatio = dateToWorkers[a].length / dateToWorkersOrigin[a].boats.reduce((sum, boat) => sum + boat.num_of_workers, 0);
+            const bRatio = dateToWorkers[b].length / dateToWorkersOrigin[b].boats.reduce((sum, boat) => sum + boat.num_of_workers, 0);
+            return aRatio - bRatio;
+        });
     
     for (const date of sortedActivityDates) {
-        schedule[date] = { workers: [], replaceableWorkers: [], expertises: {}, roles: {} };
-        let availableWorkers = [...dateToWorkers[date]].filter(worker => {
+        schedule[date] = {
+            boats: dateToWorkersOrigin[date].boats.map(boat => ({
+                workers: [],
+                remaining_workers: boat.num_of_workers,
+                remaining_experties: { ...boat.mandatory_experties },
+                roles: {}
+            })),
+            replaceableWorkers: []
+        };
+        let availableWorkers = Array.from(dateToWorkers[date] ?? []).filter(worker => {
             const maxDays = isWeekend ? workers[worker].maxWeekends : workers[worker].maxWeekdays;
             return maxDays > 0;
         });
@@ -51,108 +100,124 @@ export async function autoSchedule(
                        (availableDaysB / (isWeekend ? workers[b].maxWeekends : workers[b].maxWeekdays) || Infinity);
             });
         
-        let expertisesToBook = Object.keys(mandatoryExpertises)
-            .sort()
-            .reduce((acc, key) => {
-                acc[key] = mandatoryExpertises[key];
-                return acc;
-            }, {} as Record<string, number>);
-        let numOfWorkersLeft = numOfWorkersPerDay;
-        for (const expertise in expertisesToBook) {
-            let workersWithExpertise = availableWorkers.filter(worker => workers[worker].expertises.includes(expertise));
-            for (const worker of workersWithExpertise) {
-                if (expertisesToBook[expertise] > 0) {
-                    availableWorkers = availableWorkers.filter(w => w !== worker);
+        for (const boat of dateToWorkersOrigin[date].boats) {
+            const boatIndex = dateToWorkersOrigin[date].boats.indexOf(boat);
+            for (const expertise in schedule[date]['boats'][boatIndex].remaining_experties) {
+                let workersWithExpertise = availableWorkers.filter(worker => workers[worker].expertises.includes(expertise));
+                for (const worker of workersWithExpertise) {
+                    if (schedule[date]['boats'][boatIndex].remaining_experties[expertise] > 0) {
+                        availableWorkers = availableWorkers.filter(w => w !== worker);
+                        if (isWeekend) {
+                            workers[worker].maxWeekends--;
+                        } else {
+                            workers[worker].maxWeekdays--;
+                        }
+                        for (const workerExpertise of workers[worker].expertises) {
+                            schedule[date]['boats'][boatIndex].remaining_experties[workerExpertise]--;
+                        }
+                        boat.num_of_workers--;
+                        schedule[date]['boats'][boatIndex]['workers'].push(worker);
+                        console.log(`Worker ${worker} booked for ${date}`);
+                    }
+                }
+            }
+        }
+
+        for (const boat of dateToWorkersOrigin[date].boats) {
+            // Book the rest of the workers
+            const workersLeft: number = boat.num_of_workers;
+            for (let i = 0; i < workersLeft; i++) {
+                if (availableWorkers.length > 0) {
+                    const worker = availableWorkers.shift()!;
                     if (isWeekend) {
                         workers[worker].maxWeekends--;
                     } else {
                         workers[worker].maxWeekdays--;
                     }
+                    
                     for (const workerExpertise of workers[worker].expertises) {
-                        expertisesToBook[workerExpertise]--;
+                        schedule[date]['boats'][dateToWorkersOrigin[date].boats.indexOf(boat)].remaining_experties[workerExpertise]--;
                     }
-                    numOfWorkersLeft--;
-                    schedule[date].workers.push(worker);
+                    // const boatIndex = dateToWorkersOrigin[date].boats.indexOf(boat);
+                    schedule[date]['boats'][dateToWorkersOrigin[date].boats.indexOf(boat)]['workers'].push(worker);
+                    console.log(`Rest: Worker ${worker} booked for ${date}`);
+                    // console.log(`Boat ${boatIndex} remaining_experties: ${JSON.stringify(schedule[date]['boats'][boatIndex].remaining_experties)}`);
+                    boat.num_of_workers--;
                 }
             }
         }
-
-        // Book the rest of the workers
-        const numOfWorkersLeftCopy = numOfWorkersLeft
-        for (let i = 0; i < numOfWorkersLeftCopy; i++) {
-            if (availableWorkers.length > 0) {
-                const worker = availableWorkers.shift()!;
-                if (isWeekend) {
-                    workers[worker].maxWeekends--;
-                } else {
-                    workers[worker].maxWeekdays--;
-                }
-                
-                for (const workerExpertise of workers[worker].expertises) {
-                    expertisesToBook[workerExpertise]--;
-                }
-                
-                schedule[date].workers.push(worker);
-                numOfWorkersLeft--;
-            }
-        }
-
         delete dateToWorkers[date];
-        
-        for (const worker of schedule[date].workers) {
-            let isReplaceable = true;
-            for (const workerExpertise of workers[worker].expertises) {
-                if (expertisesToBook[workerExpertise] >= 0) {
+        for (const boat of schedule[date].boats) {
+            for (const worker of boat.workers) {
+                // console.log(`Worker ${worker} booked for ${date} on boat with remaining_experties: ${JSON.stringify(boat.remaining_experties)}`);
+                let isReplaceable = true;
+                for (const workerExpertise of workers[worker].expertises) {
+                    if (boat.remaining_experties[workerExpertise] >= 0) {
                     isReplaceable = false;
                     break;
+                    }
+                }
+                if (isReplaceable) {
+                    schedule[date].replaceableWorkers.push(worker);
+
                 }
             }
-            if (isReplaceable) {
-                schedule[date].replaceableWorkers.push(worker);
-            }
         }
-        
-        schedule[date].expertises = expertisesToBook;
     }
 
     // Check if there are workers that can be replaced to complete the missing expertises
     for (const date in schedule) {
-        for (const expertise in schedule[date].expertises) {
-            if (schedule[date].expertises[expertise] > 0) {
-                let replaced = false;
-                const workersWithExpertise = Object.keys(workers).filter(
-                    worker =>
-                        workers[worker].expertises.includes(expertise) &&
-                    dateToWorkersOrigin[date]?.includes(worker) &&
-                        !schedule[date].workers.includes(worker)
-                );
-                for (const worker of workersWithExpertise) {
-                    if (!replaced) {
-                        const scheduledDates = Object.keys(schedule).filter(
-                            scheduledDate => schedule[scheduledDate].workers.includes(worker)
-                        );
-
-                        for (const scheduledDate of scheduledDates) {
-                            const workersToReplace = schedule[date].replaceableWorkers.filter(
-                                replacableWorker =>
-                                    !schedule[scheduledDate].workers.includes(replacableWorker) &&
-                                dateToWorkersOrigin[scheduledDate]?.includes(replacableWorker)
+        for (const boat of schedule[date].boats) {
+            const boatIndex = schedule[date].boats.indexOf(boat);
+            for (const expertise in boat.remaining_experties) {
+                if (boat.remaining_experties[expertise] > 0) {
+                    let replaced = false;
+                    const workersWithExpertise = Object.keys(workers).filter(
+                        worker =>
+                            workers[worker].expertises.includes(expertise) &&
+                            dateToWorkersOrigin[date]?.available_workers.includes(worker) &&
+                            !boat.workers.includes(worker)
+                    );
+                    for (const worker of workersWithExpertise) {
+                        if (!replaced) {
+                            let scheduleDates: Record<string, number> = {};
+                            for (const dateX in schedule) {
+                                for (let boatIndex = 0; boatIndex < schedule[dateX].boats.length; boatIndex++) {
+                                    const boatX = schedule[dateX].boats[boatIndex];
+                                    if (boatX.workers.includes(worker)) {
+                                        scheduleDates[dateX] = boatIndex;
+                                    }
+                                }
+                            }
+                            // Keep only the dates where the worker is in replaceableWorkers
+                            const filteredScheduleDates = Object.fromEntries(
+                                Object.entries(scheduleDates).filter(([dateX]) =>
+                                    schedule[dateX].replaceableWorkers.includes(worker)
+                                )
                             );
 
-                            if (
-                                schedule[scheduledDate].replaceableWorkers.includes(worker) &&
-                                workersToReplace.length > 0
-                            ) {
-                                replaceWorkers(
-                                    worker,
-                                    scheduledDate,
-                                    workersToReplace[0],
-                                    date,
-                                    schedule,
-                                    workers
+                            for (const scheduledDate in filteredScheduleDates) {
+                                // Workers to replace Should be replaceable on the date we are looking at, Should not already be in the scheduledDate we are replacing, but should be available on this date.
+                                const workersToReplace = schedule[date].replaceableWorkers.filter(
+                                    workerX =>
+                                        schedule[scheduledDate].boats.every(boat => !boat.workers.includes(workerX)) &&
+                                        dateToWorkersOrigin[scheduledDate]?.available_workers.includes(workerX)
                                 );
-                                replaced = true;
-                                break;
+
+                                if (workersToReplace.length > 0) {
+                                    replaceWorkers(
+                                        worker,
+                                        scheduledDate,
+                                        filteredScheduleDates[scheduledDate],
+                                        workersToReplace[0],
+                                        date,
+                                        boatIndex,
+                                        schedule,
+                                        workers
+                                    );
+                                    replaced = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -162,19 +227,24 @@ export async function autoSchedule(
     }
 
     // add roles
+    const mandatoryExpertises: Record<string, number> = {}; // Define mandatoryExpertises or pass it as a parameter
+
     for (const date in schedule) {
         let expertisesToBook: Record<string, number> = Object.keys(mandatoryExpertises).reduce((acc, key) => {
             acc[key] = mandatoryExpertises[key];
             return acc;
         }, {} as Record<string, number>);
-        for (const worker of schedule[date].workers) {
-            for (const workerExpertise of workersOrigin[worker].expertises) {
-                expertisesToBook[workerExpertise]--;
-                if (!schedule[date].roles[worker]) {
-                    schedule[date].roles[worker] = [];
-                }
-                if (expertisesToBook[workerExpertise] >= 0) {
-                    schedule[date].roles[worker].push(workerExpertise);
+        
+        for (const boat of schedule[date].boats) { // Iterate over boats to access workers
+            for (const worker of boat.workers) {
+                for (const workerExpertise of workers[worker].expertises) {
+                    expertisesToBook[workerExpertise]--;
+                    if (!boat.roles[worker]) {
+                        boat.roles[worker] = [];
+                    }
+                    if (expertisesToBook[workerExpertise] >= 0) {
+                        boat.roles[worker].push(workerExpertise);
+                    }
                 }
             }
         }
@@ -290,20 +360,24 @@ export async function analyzeScheduleWithSeparation(
 
 export async function autoScheduleWithSeparation(
     workersOrigin: Record<string, Worker>,
-    dateToWorkersOrigin: Record<string, string[]>,
-    mandatoryExpertises: Record<string, number>,
-    numOfWorkersPerDay: number
+    dateToWorkersOrigin: DateToWorkers,
 ): Promise<Record<string, Schedule>> {
     // Separate weekends and weekdays
-    const weekendDates: Record<string, string[]> = {};
-    const weekdayDates: Record<string, string[]> = {};
+    const weekendDates: DateToWorkers = {};
+    const weekdayDates: DateToWorkers = {};
 
     for (const date in dateToWorkersOrigin) {
         const day = new Date(date).getDay();
         if (day === 5 || day === 6) {
-            weekendDates[date] = dateToWorkersOrigin[date];
+            weekendDates[date] = {
+                available_workers: dateToWorkersOrigin[date].available_workers, // Adjust type if necessary
+                boats: dateToWorkersOrigin[date].boats
+            };
         } else {
-            weekdayDates[date] = dateToWorkersOrigin[date];
+            weekdayDates[date] = {
+                available_workers: dateToWorkersOrigin[date].available_workers, // Adjust type if necessary
+                boats: dateToWorkersOrigin[date].boats
+            };
         }
     }
 
@@ -311,8 +385,6 @@ export async function autoScheduleWithSeparation(
     const weekdaySchedule = await autoSchedule(
         workersOrigin,
         weekdayDates,
-        mandatoryExpertises,
-        numOfWorkersPerDay,
         false // isWeekend = false
     );
 
@@ -320,8 +392,6 @@ export async function autoScheduleWithSeparation(
     const weekendSchedule = await autoSchedule(
         workersOrigin,
         weekendDates,
-        mandatoryExpertises,
-        numOfWorkersPerDay,
         true // isWeekend = true
     );
 
@@ -334,46 +404,50 @@ export async function autoScheduleWithSeparation(
 export function replaceWorkers(
     worker1: string,
     date1: string,
+    boat1_index: number,
     worker2: string,
     date2: string,
+    boat2_index: number,
     schedule: Record<string, Schedule>,
     workers: Record<string, Worker>
 ): void {
+    console.log(`Replacing ${worker1} on ${date1} and index ${boat1_index} with ${worker2} on ${date2} and index ${boat2_index}`);
+    console.log(schedule[date2].boats[0]);
     if (
-        !schedule[date2].workers.includes(worker1) &&
-        !schedule[date1].workers.includes(worker2) &&
+        !schedule[date2].boats[boat2_index].workers.includes(worker1) &&
+        !schedule[date1].boats[boat2_index].workers.includes(worker2) &&
         schedule[date1].replaceableWorkers.includes(worker1) &&
         schedule[date2].replaceableWorkers.includes(worker2) &&
-        schedule[date1].workers.includes(worker1) &&
-        schedule[date2].workers.includes(worker2)
+        schedule[date1].boats[boat2_index].workers.includes(worker1) &&
+        schedule[date2].boats[boat2_index].workers.includes(worker2)
     ) {
         // Swap workers between dates
-        schedule[date1].workers = schedule[date1].workers.filter(w => w !== worker1);
-        schedule[date1].workers.push(worker2);
-        schedule[date2].workers = schedule[date2].workers.filter(w => w !== worker2);
-        schedule[date2].workers.push(worker1);
+        schedule[date1].boats[boat2_index].workers = schedule[date1].boats[boat2_index].workers.filter(w => w !== worker1);
+        schedule[date1].boats[boat2_index].workers.push(worker2);
+        schedule[date2].boats[boat2_index].workers = schedule[date2].boats[boat2_index].workers.filter(w => w !== worker2);
+        schedule[date2].boats[boat2_index].workers.push(worker1);
 
         // Update replaceable workers
         schedule[date1].replaceableWorkers = schedule[date1].replaceableWorkers.filter(w => w !== worker1);
         schedule[date2].replaceableWorkers = schedule[date2].replaceableWorkers.filter(w => w !== worker2);
 
         // Update expertises for date1
-        for (const expertise in schedule[date1].expertises) {
+        for (const expertise in schedule[date1].boats[boat1_index].remaining_experties) {
             if (workers[worker1].expertises.includes(expertise)) {
-                schedule[date1].expertises[expertise]++;
+                schedule[date1].boats[boat1_index].remaining_experties[expertise]++;
             }
             if (workers[worker2].expertises.includes(expertise)) {
-                schedule[date1].expertises[expertise]--;
+                schedule[date1].boats[boat1_index].remaining_experties[expertise]--;
             }
         }
 
         // Update expertises for date2
-        for (const expertise in schedule[date2].expertises) {
+        for (const expertise in schedule[date2].boats[boat2_index].remaining_experties) {
             if (workers[worker2].expertises.includes(expertise)) {
-                schedule[date2].expertises[expertise]++;
+                schedule[date2].boats[boat2_index].remaining_experties[expertise]++;
             }
             if (workers[worker1].expertises.includes(expertise)) {
-                schedule[date2].expertises[expertise]--;
+                schedule[date2].boats[boat2_index].remaining_experties[expertise]--;
             }
         }
     }

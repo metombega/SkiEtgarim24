@@ -1,21 +1,78 @@
 import { autoScheduleWithSeparation } from "@/helpers/AutoSchedule";
-
-let dateToWorkers: Record<string, string[]> = {
-    // weekdays
-    "5/4/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Grace", "Ivan"],
-    "5/5/2025": ["Alice", "Bob", "David", "Eve", "Frank", "Grace", "Ivan"],
-    "5/6/2025": ["Alice", "Bob", "Charlie", "David", "Frank", "Grace", "John"],
-    "5/7/2025": ["Alice", "Bob", "Charlie", "Frank", "Grace", "David"],
-    "5/8/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-    "5/11/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+const dateToWorkers = {
+    "5/4/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Eve", "Grace", "Ivan"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/5/2025": {
+        available_workers: ["Alice", "Bob", "David", "Eve", "Frank", "Grace", "Ivan"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/6/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Frank", "Grace", "John"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/7/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "Frank", "Grace", "David"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/8/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/11/2025": {
+        available_workers: ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
     // weekends
-    "5/2/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Grace", "Ivan"],
-    "5/3/2025": ["Alice", "Bob", "David", "Eve", "Frank", "Grace", "Ivan"],
-    "5/9/2025": ["Alice", "Bob", "Charlie", "David", "Frank", "Grace", "John"],
-    "5/10/2025": ["Alice", "Bob", "Charlie", "Frank", "Grace", "David"],
-    "5/16/2025": ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-    "5/17/2025": ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-
+    "5/2/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Eve", "Grace", "Ivan"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/3/2025": {
+        available_workers: ["Alice", "Bob", "David", "Eve", "Frank", "Grace", "Ivan"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/9/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Frank", "Grace", "John"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/10/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "Frank", "Grace", "David"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/16/2025": {
+        available_workers: ["Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
+    "5/17/2025": {
+        available_workers: ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
+        boats: [
+            { mandatory_experties: { a: 1, b: 2, c: 1, d: 0, e: 1 }, num_of_workers: 5 },
+        ],
+    },
 };
 
 const workers = {
@@ -32,17 +89,17 @@ const workers = {
     'Karl': { 'maxWeekdays': 0, 'maxWeekends': 0, 'expertises': [] },
 };
 
-const mandatoryExpertises = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1};
 (async () => {
-    
-    const schedule = await autoScheduleWithSeparation(workers, dateToWorkers, mandatoryExpertises, 5);
+    const schedule = await autoScheduleWithSeparation(workers, dateToWorkers);
     console.log("Results:");
     for (const date in schedule) {
-        console.log(`${date}: ${schedule[date].workers.join(',')}`);
-        console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
-        console.log('Roles:');
-        for (const role in schedule[date].roles) {
-            console.log(`${role}: ${schedule[date].roles[role].join(',')}`);
+        for (const boat of schedule[date].boats) {
+            console.log(`${date}: ${boat.workers.join(',')}`);
+            // console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
+            // console.log('Roles:');
+            // for (const role in boat.roles) {
+            //     console.log(`${role}: ${boat.roles[role].join(',')}`);
+            // }
         }
     }
 })();
@@ -61,33 +118,3 @@ const mandatoryExpertises = {'a': 1, 'b': 2, 'c': 1, 'd': 0, 'e': 1};
 // 5/9/2025: Alice,Grace,John,Charlie,David
 // 5/17/2025: Eve,Frank,David,Heidi,Grace
 // 5/16/2025: Eve,Alice,Heidi,Charlie,David
-
-
-// "5/7/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
-// "5/4/2025": ["Eve", "Alice", "Ivan", "Grace", "David"],
-// "5/5/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
-// "5/6/2025": ["Alice", "Grace", "John", "Charlie", "David"],
-// "5/11/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
-// "5/8/2025": ["Eve", "Alice", "Heidi", "Bob", "Charlie"],
-
-// "5/10/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
-// "5/2/2025": ["Eve", "Alice", "Ivan", "Grace", "David"],
-// "5/3/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
-// "5/9/2025": ["Alice", "Grace", "John", "Charlie", "David"],
-// "5/17/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
-// "5/16/2025": ["Eve", "Alice", "Heidi", "Bob", "Charlie"]
-
-// "5/7/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
-// "5/4/2025": ["Eve", "Alice", "Ivan", "Grace", "Bob"],
-// "5/5/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
-// "5/6/2025": ["Alice", "Grace", "John", "Charlie", "David"],
-// "5/11/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
-// "5/8/2025": ["Eve", "Alice", "Heidi", "Charlie", "David"],
-
-// "5/10/2025": ["Alice", "Grace", "David", "Frank", "Charlie"],
-// "5/2/2025": ["Eve", "Alice", "Ivan", "Grace", "Bob"],
-// "5/3/2025": ["Eve", "Alice", "Ivan", "Grace", "Frank"],
-// "5/9/2025": ["Alice", "Grace", "John", "Charlie", "David"],
-// "5/17/2025": ["Eve", "Frank", "David", "Heidi", "Grace"],
-// "5/16/2025": ["Eve", "Alice", "Heidi", "Charlie", "David"]
-  
