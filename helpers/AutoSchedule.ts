@@ -117,7 +117,7 @@ export async function autoSchedule(
                         }
                         boat.num_of_workers--;
                         schedule[date]['boats'][boatIndex]['workers'].push(worker);
-                        console.log(`Worker ${worker} booked for ${date}`);
+                        // console.log(`Worker ${worker} booked for ${date}`);
                     }
                 }
             }
@@ -140,7 +140,7 @@ export async function autoSchedule(
                     }
                     // const boatIndex = dateToWorkersOrigin[date].boats.indexOf(boat);
                     schedule[date]['boats'][dateToWorkersOrigin[date].boats.indexOf(boat)]['workers'].push(worker);
-                    console.log(`Rest: Worker ${worker} booked for ${date}`);
+                    // console.log(`Rest: Worker ${worker} booked for ${date}`);
                     // console.log(`Boat ${boatIndex} remaining_experties: ${JSON.stringify(schedule[date]['boats'][boatIndex].remaining_experties)}`);
                     boat.num_of_workers--;
                 }
@@ -238,6 +238,9 @@ export async function autoSchedule(
         for (const boat of schedule[date].boats) { // Iterate over boats to access workers
             for (const worker of boat.workers) {
                 for (const workerExpertise of workers[worker].expertises) {
+                    console.log(`Worker ${worker} booked for ${date} on boat with remaining_experties: ${JSON.stringify(boat.remaining_experties)}`);
+                    console.log(`Worker ${worker} expertise: ${workerExpertise}`);
+                    console.log(`Expertises to book: ${JSON.stringify(expertisesToBook)}`);
                     expertisesToBook[workerExpertise]--;
                     if (!boat.roles[worker]) {
                         boat.roles[worker] = [];

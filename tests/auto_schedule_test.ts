@@ -95,11 +95,11 @@ const workers = {
     for (const date in schedule) {
         for (const boat of schedule[date].boats) {
             console.log(`${date}: ${boat.workers.join(',')}`);
-            // console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
-            // console.log('Roles:');
-            // for (const role in boat.roles) {
-            //     console.log(`${role}: ${boat.roles[role].join(',')}`);
-            // }
+            console.log(`Replaceable Workers: ${schedule[date].replaceableWorkers.join(',')}`);
+            console.log('Roles:');
+            for (const role in boat.roles) {
+                console.log(`${role}: ${boat.roles[role].join(',')}`);
+            }
         }
     }
 })();
