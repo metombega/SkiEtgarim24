@@ -231,7 +231,7 @@ export async function autoSchedule(
             return acc;
         }, {} as Record<string, number>);
         
-        for (const boat of schedule[date].boats) { // Iterate over boats to access workers
+        for (const boat of schedule[date].boats) {
             for (const worker of boat.workers) {
                 for (const workerExpertise of workers[worker].expertises) {
                     expertisesToBook[workerExpertise]--;
@@ -245,7 +245,6 @@ export async function autoSchedule(
             }
         }
     }
-
     return schedule;
 }
 
@@ -314,6 +313,10 @@ export async function analyzeSchedule(
             );
         }
     }
+
+    // find roles
+    findRoles(schedule, workers, dateToWorkers);
+
     return issues;
 }
 
@@ -444,6 +447,32 @@ export function replaceWorkers(
             }
             if (workers[worker1].expertises.includes(expertise)) {
                 schedule[date2].boats[boat2_index].remaining_experties[expertise]--;
+            }
+        }
+    }
+}
+
+export function findRoles(
+    schedule: Record<string, Schedule>,
+    workers: Record<string, Worker>,
+    dateToWorkers: DateToWorkers,
+): void {
+      for (const date in schedule) {
+        for (const boat of schedule[date].boats) {
+            const boatIndex = schedule[date].boats.indexOf(boat);
+            const boatMandatoryExpertises = dateToWorkers[date].boats[boatIndex].mandatory_experties;
+            const mandatoryExpertisesCopy = { ...boatMandatoryExpertises };
+            boat.roles = {}; // Initialize roles for the boat
+            for (const worker of boat.workers) {
+                for (const workerExpertise of workers[worker].expertises) {
+                    mandatoryExpertisesCopy[workerExpertise]--;
+                    if (!boat.roles[worker]) {
+                        boat.roles[worker] = [];
+                    }
+                    if (mandatoryExpertisesCopy[workerExpertise] >= 0) {
+                        boat.roles[worker].push(workerExpertise);
+                    }
+                }
             }
         }
     }
