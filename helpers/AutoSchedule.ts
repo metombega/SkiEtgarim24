@@ -466,40 +466,21 @@ export function findRoles(
             const num_of_workers = boat.workers.length;
             let worker_index = 0;
             for (const experty in mandatoryExpertisesCopy) {
-                console.log(`experties: ${experty}, num_of_workers: ${num_of_workers}, worker_index: ${worker_index}`);
                 for (let i = 0; i < num_of_workers; i++) {
-                    console.log(`remaining_experties ${experty}: ${mandatoryExpertisesCopy[experty]}`);
                     if (mandatoryExpertisesCopy[experty] == 0) {
                        break;
                     }
-                    console.log(`worker: ${boat.workers[worker_index]}`);
-                    console.log(`worker expertises: ${workers[boat.workers[worker_index]].expertises}`);
-                    console.log(`has experty: ${workers[boat.workers[worker_index]].expertises.includes(experty)}`);
                     if (workers[boat.workers[worker_index]].expertises.includes(experty)) {
                         if (!boat.roles[boat.workers[worker_index]]) {
                             boat.roles[boat.workers[worker_index]] = [];
                         }
                         boat.roles[boat.workers[worker_index]].push(experty);
                         mandatoryExpertisesCopy[experty]--;
-                        console.log(`Assigned ${experty} to ${boat.workers[worker_index]}`);
                     }
                     worker_index++;
                     worker_index = worker_index % num_of_workers;
-                    console.log(`worker_index: ${worker_index}`);
-                    console.log(`mandatoryExpertisesCopy: ${JSON.stringify(mandatoryExpertisesCopy)}`);
                 }
             }
-            // for (const worker of boat.workers) {
-            //     for (const workerExpertise of workers[worker].expertises) {
-            //         mandatoryExpertisesCopy[workerExpertise]--;
-            //         if (!boat.roles[worker]) {
-            //             boat.roles[worker] = [];
-            //         }
-            //         if (mandatoryExpertisesCopy[workerExpertise] >= 0) {
-            //             boat.roles[worker].push(workerExpertise);
-            //         }
-            //     }
-            // }
         }
     }
 }
