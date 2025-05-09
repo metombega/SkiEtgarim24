@@ -48,7 +48,7 @@ const dateToWorkers = {
     },
     "5/17/2025": {
         available_workers: ["Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Heidi"],
-        boats: [{ mandatory_experties: { 'driver': 1, 'activity_manager': 1, 'skipper': 2 }, num_of_workers: 5 }],
+        boats: [{ mandatory_experties: { 'driver': 1, 'activity_manager': 1, 'skipper': 7 }, num_of_workers: 5 }],
     },
 };
 

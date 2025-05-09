@@ -259,13 +259,13 @@ export async function analyzeSchedule(
     for (const date in schedule) {
         for (const boat of schedule[date].boats) {
             const scheduledWorkers = boat.workers;
-            const boatIndex = schedule[date].boats.indexOf(boat) + 1;
+            const boatIndex = schedule[date].boats.indexOf(boat);
 
             // Check if the number of workers is correct
             if (scheduledWorkers.length !== boat.remaining_workers) {
                 issues.push(
-                    `כמות עובדים שגויה בתאריך ${date} וסירה ${boatIndex}. צפוי: ${boat.remaining_workers}, בפועל: ${scheduledWorkers.length}.`
-                    // `Wrong number of workers on date ${date} and boat ${boatIndex}. Expected: ${boat.remaining_workers}, Got: ${scheduledWorkers.length}.`
+                    // `Wrong number of workers on date ${date} and boat ${boatIndex + 1}. Expected: ${boat.remaining_workers}, Got: ${scheduledWorkers.length}.`
+                    `כמות עובדים שגויה בתאריך ${date} וסירה ${boatIndex + 1}. צפוי: ${boat.remaining_workers}, בפועל: ${scheduledWorkers.length}.`
                 );
             }
 
@@ -273,26 +273,27 @@ export async function analyzeSchedule(
             for (const worker of scheduledWorkers) {
                 if (!dateToWorkers[date]?.available_workers.includes(worker)) {
                     issues.push(
-                        `העובד ${worker} לא נרשם לתאריך ${date} וסירה ${boatIndex}.`
-                        // `Worker ${worker} was not signed up for date ${date} and boat ${boatIndex}.`
+                        // `Worker ${worker} was not signed up for date ${date} and boat ${boatIndex + 1}.`
+                        `העובד ${worker} לא נרשם לתאריך ${date} וסירה ${boatIndex + 1}.`
                     );
                 }
             }
 
             // Check if the workers have the required expertises
-            const mandatoryExpertisesCopy = { ...boat.remaining_experties };
+            const boatMandatoryExpertises = dateToWorkers[date].boats[boatIndex].mandatory_experties;
+            const mandatoryExpertisesCopy = { ...boatMandatoryExpertises };
             for (const worker of scheduledWorkers) {
-                for (const expertise of workers[worker].expertises) {
-                    if (mandatoryExpertisesCopy[expertise] !== undefined) {
-                        mandatoryExpertisesCopy[expertise]--;
+                for (const experty of workers[worker].expertises) {
+                    if (mandatoryExpertisesCopy[experty] !== undefined) {
+                        mandatoryExpertisesCopy[experty]--;
                     }
                 }
             }
-            for (const expertise in mandatoryExpertisesCopy) {
-                if (mandatoryExpertisesCopy[expertise] > 0) {
+            for (const experty in mandatoryExpertisesCopy) {
+                if (mandatoryExpertisesCopy[experty] > 0) {
                     issues.push(
-                        `בתאריך ${date} ובסירה ${boatIndex} אין את המומחיות הנדרשת "${expertise}".`
-                        // `Date ${date} and boat ${boatIndex} does not have the required expertise "${expertise}".`
+                        // `Date ${date} and boat ${boatIndex + 1} does not have the required expertise "${experty}". expected: ${boatMandatoryExpertises[experty]}, got: ${boatMandatoryExpertises[experty] - mandatoryExpertisesCopy[experty]}.`
+                        `בתאריך ${date} וסירה ${boatIndex + 1} אין את המומחיות הנדרשת "${experty}". צפוי: ${boatMandatoryExpertises[experty]}, בפועל: ${boatMandatoryExpertises[experty] - mandatoryExpertisesCopy[experty]}.`
                     );
                 }
             }
@@ -308,8 +309,8 @@ export async function analyzeSchedule(
         }, 0);
         if (scheduledDays > maxWorkDays) {
             issues.push(
-                `לעובד ${workerId} יש יותר ${dayType === "weekend" ? "סופי שבוע" : "ימי חול"} (${scheduledDays}) ממה שמותר (${maxWorkDays}).`
                 // `Worker ${workerId} has more ${dayType} (${scheduledDays}) than allowed (${maxWorkDays}).`
+                `לעובד ${workerId} יש יותר ${dayType === "weekend" ? "סופי שבוע" : "ימי חול"} (${scheduledDays}) ממה שנרשם (${maxWorkDays}).`
             );
         }
     }
