@@ -117,7 +117,6 @@ export async function autoSchedule(
                         }
                         boat.num_of_workers--;
                         schedule[date]['boats'][boatIndex]['workers'].push(worker);
-                        // console.log(`Worker ${worker} booked for ${date}`);
                     }
                 }
             }
@@ -140,8 +139,6 @@ export async function autoSchedule(
                     }
                     // const boatIndex = dateToWorkersOrigin[date].boats.indexOf(boat);
                     schedule[date]['boats'][dateToWorkersOrigin[date].boats.indexOf(boat)]['workers'].push(worker);
-                    // console.log(`Rest: Worker ${worker} booked for ${date}`);
-                    // console.log(`Boat ${boatIndex} remaining_experties: ${JSON.stringify(schedule[date]['boats'][boatIndex].remaining_experties)}`);
                     boat.num_of_workers--;
                 }
             }
@@ -149,7 +146,6 @@ export async function autoSchedule(
         delete dateToWorkers[date];
         for (const boat of schedule[date].boats) {
             for (const worker of boat.workers) {
-                // console.log(`Worker ${worker} booked for ${date} on boat with remaining_experties: ${JSON.stringify(boat.remaining_experties)}`);
                 let isReplaceable = true;
                 for (const workerExpertise of workers[worker].expertises) {
                     if (boat.remaining_experties[workerExpertise] >= 0) {
@@ -238,9 +234,6 @@ export async function autoSchedule(
         for (const boat of schedule[date].boats) { // Iterate over boats to access workers
             for (const worker of boat.workers) {
                 for (const workerExpertise of workers[worker].expertises) {
-                    console.log(`Worker ${worker} booked for ${date} on boat with remaining_experties: ${JSON.stringify(boat.remaining_experties)}`);
-                    console.log(`Worker ${worker} expertise: ${workerExpertise}`);
-                    console.log(`Expertises to book: ${JSON.stringify(expertisesToBook)}`);
                     expertisesToBook[workerExpertise]--;
                     if (!boat.roles[worker]) {
                         boat.roles[worker] = [];
@@ -259,42 +252,49 @@ export async function autoSchedule(
 export async function analyzeSchedule(
     schedule: Record<string, Schedule>,
     workers: Record<string, Worker>,
-    dateToWorkers: Record<string, string[]>,
-    mandatoryExpertises: Record<string, number>,
-    numOfWorkersPerDay: number,
+    dateToWorkers: DateToWorkers,
     isWeekend: boolean = false
 ): Promise<string[]> {
     const issues: string[] = [];
     for (const date in schedule) {
-        const daySchedule = schedule[date];
-        const scheduledWorkers = daySchedule.workers;
+        for (const boat of schedule[date].boats) {
+            const scheduledWorkers = boat.workers;
+            const boatIndex = schedule[date].boats.indexOf(boat) + 1;
 
-        // Check if the number of workers is correct
-        if (scheduledWorkers.length !== numOfWorkersPerDay) {
-            issues.push(
-                `Wrong number of workers on date ${date}. Expected: ${numOfWorkersPerDay}, Got: ${scheduledWorkers.length}.`
-            );
-        }
-
-        // Check if the workers are in the dateToWorkers
-        for (const worker of scheduledWorkers) {
-            if (!dateToWorkers[date]?.includes(worker)) {
-                issues.push(`Worker ${worker} was not signed up for date ${date}.`);
+            // Check if the number of workers is correct
+            if (scheduledWorkers.length !== boat.remaining_workers) {
+                issues.push(
+                    `כמות עובדים שגויה בתאריך ${date} וסירה ${boatIndex}. צפוי: ${boat.remaining_workers}, בפועל: ${scheduledWorkers.length}.`
+                    // `Wrong number of workers on date ${date} and boat ${boatIndex}. Expected: ${boat.remaining_workers}, Got: ${scheduledWorkers.length}.`
+                );
             }
-        }
 
-        // Check if the workers have the required expertises
-        const mandatoryExpertisesCopy = { ...mandatoryExpertises };
-        for (const worker of scheduledWorkers) {
-            for (const expertise of workers[worker].expertises) {
-                if (mandatoryExpertisesCopy[expertise] !== undefined) {
-                    mandatoryExpertisesCopy[expertise]--;
+            // Check if the workers are in the dateToWorkers
+            for (const worker of scheduledWorkers) {
+                if (!dateToWorkers[date]?.available_workers.includes(worker)) {
+                    issues.push(
+                        `העובד ${worker} לא נרשם לתאריך ${date} וסירה ${boatIndex}.`
+                        // `Worker ${worker} was not signed up for date ${date} and boat ${boatIndex}.`
+                    );
                 }
             }
-        }
-        for (const expertise in mandatoryExpertisesCopy) {
-            if (mandatoryExpertisesCopy[expertise] > 0) {
-                issues.push(`Date ${date} does not have the required expertise "${expertise}".`);
+
+            // Check if the workers have the required expertises
+            const mandatoryExpertisesCopy = { ...boat.remaining_experties };
+            for (const worker of scheduledWorkers) {
+                for (const expertise of workers[worker].expertises) {
+                    if (mandatoryExpertisesCopy[expertise] !== undefined) {
+                        mandatoryExpertisesCopy[expertise]--;
+                    }
+                }
+            }
+            for (const expertise in mandatoryExpertisesCopy) {
+                if (mandatoryExpertisesCopy[expertise] > 0) {
+                    issues.push(
+                        `בתאריך ${date} ובסירה ${boatIndex} אין את המומחיות הנדרשת "${expertise}".`
+                        // `Date ${date} and boat ${boatIndex} does not have the required expertise "${expertise}".`
+                    );
+                }
             }
         }
     }
@@ -303,10 +303,13 @@ export async function analyzeSchedule(
     for (const workerId in workers) {
         const maxWorkDays = isWeekend ? workers[workerId].maxWeekends : workers[workerId].maxWeekdays;
         const dayType = isWeekend ? "weekend" : "weekday";
-        const scheduledDays = Object.keys(schedule).filter(date => schedule[date].workers.includes(workerId)).length;
+        const scheduledDays = Object.keys(schedule).reduce((count, date) => {
+            return count + schedule[date].boats.filter(boat => boat.workers.includes(workerId)).length;
+        }, 0);
         if (scheduledDays > maxWorkDays) {
             issues.push(
-                `Worker ${workerId} has more ${dayType} (${scheduledDays}) than allowed (${maxWorkDays}).`
+                `לעובד ${workerId} יש יותר ${dayType === "weekend" ? "סופי שבוע" : "ימי חול"} (${scheduledDays}) ממה שמותר (${maxWorkDays}).`
+                // `Worker ${workerId} has more ${dayType} (${scheduledDays}) than allowed (${maxWorkDays}).`
             );
         }
     }
@@ -316,9 +319,7 @@ export async function analyzeSchedule(
 export async function analyzeScheduleWithSeparation(
     schedule: Record<string, Schedule>,
     workers: Record<string, Worker>,
-    dateToWorkers: Record<string, string[]>,
-    mandatoryExpertises: Record<string, number>,
-    numOfWorkersPerDay: number
+    dateToWorkers: DateToWorkers,
 ): Promise<string[]> {
     // Separate weekends and weekdays
     const weekendDates: Record<string, Schedule> = {};
@@ -338,25 +339,17 @@ export async function analyzeScheduleWithSeparation(
         weekdayDates,
         workers,
         dateToWorkers,
-        mandatoryExpertises,
-        numOfWorkersPerDay,
         false // isWeekend = false
     );
-    console.log(weekdayIssues);
     // Analyze weekend schedule
     const weekendIssues = await analyzeSchedule(
         weekendDates,
         workers,
         dateToWorkers,
-        mandatoryExpertises,
-        numOfWorkersPerDay,
         true // isWeekend = true
     );
-    console.log(weekendIssues);
-
     // Combine the results
     const combinedIssues = [...weekdayIssues, ...weekendIssues];
-    console.log(combinedIssues);
 
     return combinedIssues;
 }
@@ -415,7 +408,6 @@ export function replaceWorkers(
     workers: Record<string, Worker>
 ): void {
     console.log(`Replacing ${worker1} on ${date1} and index ${boat1_index} with ${worker2} on ${date2} and index ${boat2_index}`);
-    console.log(schedule[date2].boats[0]);
     if (
         !schedule[date2].boats[boat2_index].workers.includes(worker1) &&
         !schedule[date1].boats[boat2_index].workers.includes(worker2) &&
